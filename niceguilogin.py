@@ -3,9 +3,13 @@ from nicegui import ui
 
 
 #functions
-@ui.page('/other_page')
+def top(current_page):
+        with ui.card().classes(" card w-full items-center justify-center "):
+            ui.label(f'{current_page}  Greenmount Vet').classes('text-black text-4xl font-normal')
+@ui.page('/main_menu')
 def main():
-    pass    
+    current_page="main menu of"
+    top(current_page)   
 #this is the main login, currently does't do anything but print the username and password to the console
 @ui.page('/')
 def login():
@@ -18,14 +22,17 @@ def login():
 #i have put each item in an individual  ui.add css so it is more readable
     ui.add_css('''
 body {
-    background: radial-gradient(circle, skyblue 0%, white 100%);
+    background: radial-gradient(circle, skyblue 0%, black 100%);
     font-family: "DM Sans", sans-serif;
 }
-''', shared=True)
-    with ui.header().classes('bg-gradient-to-r from-blue-500 via-blue-300 to-blue-500 shadow-lg h-20 flex items-center justify-center'):
-        ui.label('login to Greenmount Vet').classes('text-black text-4xl font-normal')
+''', shared=True) 
 
+    def handle_submit():
+        ui.navigate.to('/main_menu')
+    current_page="login to"
+    top(current_page)
     with ui.column().classes('w-full h-screen items-center justify-center'):
+        
         with ui.card().classes('w-96 shadow-xl bg-gray-100 items-center p-8'):
             ui.label('login').classes('text-2xl mb-4')
         
@@ -36,7 +43,7 @@ body {
             password = ui.input('password', password=True).classes('w-full')
         
             ui.space().classes('h-8')
-        with ui.link('menu', '/other_page').classes('text-blue-600 underline mb-4'):    
-            ui.button('submit', on_click=lambda: print(f'Username: {username.value}, Password: {password.value}')).classes('btn btn-secondary w-40')
+
+            ui.button('submit', on_click=handle_submit).classes('btn-one w-40')
 
 ui.run()

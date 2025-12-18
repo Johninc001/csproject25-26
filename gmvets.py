@@ -11,7 +11,10 @@ def top(current_page):
 def main():
     current_page="main menu of"
     top(current_page)   
-#this is the main login, currently does't do anything but print the username and password to the console
+    with ui.column().classes('w-full h-screen items-center justify-center'):
+        with ui.card().classes():
+            ui.button("make a booking", color="black").classes("btn text-white rounded-lg")
+#this is the main login, currently does't do anything but output the username and password to the card
 @ui.page('/')
 def login():
     ui.add_head_html('''
@@ -63,6 +66,6 @@ body {
         
             ui.space().classes('h-8')
 
-            ui.button('submit', on_click=handle_submit).classes('btn-one w-40')
+            ui.button('submit', on_click=handle_submit).classes('btn w-40')
 
 ui.run()

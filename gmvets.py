@@ -9,7 +9,22 @@ def top(current_page):
         with ui.card().classes(" card  w-full items-center justify-center ").style("box-shadow: 5px 5px 15px 0px rgba(255,255,240, 0.625);"):
 
             ui.label(f'{current_page}  Greenmount Vet').classes('text-black text-4xl font-normal')
+@ui.page('/reports')
+def reports():
+    top(current_page="reports on")
 
+@ui.page('/calendar')
+def calendar():
+    top(current_page="calendar of")
+
+@ui.page('/invoices')
+def invoice():
+    current_page="invoices of"
+    top(current_page)
+@ui.page('/booking')
+def booking():
+    current_page ="booking form for"
+    top(current_page)
 @ui.page('/main_menu')
 def main():
     current_page="main menu of"

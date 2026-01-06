@@ -5,51 +5,72 @@ import sqlite3
 
 #functions
 
-def top(current_page):
+def top():
+      #credit for the below belongs to https://css-generators.com/ribbon-shapes/
+        ui.add_css('''
+        
+.ribbon {
+  font-size: 28px;
+  font-weight: bold;
+  color: #fff;
+}
+.ribbon {
+  --s: 1.8em; /* the ribbon size */
+  --d: .8em;  /* the depth */
+  --c: .8em;  /* the cutout part */
+  
+  padding: var(--d) calc(var(--s) + .5em) 0;
+  line-height: 1.8;
+  background:
+    conic-gradient(from  45deg at left  var(--s) top var(--d),
+     #0008 12.5%,#0000 0 37.5%,#0004 0) 0   /50% 100% no-repeat,
+    conic-gradient(from -45deg at right var(--s) top var(--d),
+     #0004 62.5%,#0000 0 87.5%,#0008 0) 100%/50% 100% no-repeat;
+  clip-path: polygon(0 0,calc(var(--s) + var(--d)) 0,calc(var(--s) + var(--d)) var(--d),calc(100% - var(--s) - var(--d)) var(--d),calc(100% - var(--s) - var(--d)) 0,100% 0, calc(100% - var(--c)) calc(50% - var(--d)/2),100% calc(100% - var(--d)),calc(100% - var(--s)) calc(100% - var(--d)),calc(100% - var(--s)) 100%,var(--s) 100%,var(--s) calc(100% - var(--d)),0 calc(100% - var(--d)),var(--c) calc(50% - var(--d)/2));
+  background-color: #D95B43; /* the main color */
+  width: fit-content;
+}''')
         with ui.card().classes(" card  w-full items-center justify-center ").style("box-shadow: 5px 5px 15px 0px rgba(255,255,240, 0.625);"):
-
-            ui.label(f'{current_page}  Greenmount Vet').classes('text-black text-4xl font-normal')
+            
+            ui.label(' Greenmount Vet').classes('text-black text-4xl font-normal')
+        with ui.card().classes("ribbon vw-75 items-center justify-center ").style("box-shadow: 5px 5px 15px 0px rgba(255,255,240, 0.625);"):
+            ui.label("wagging tails")
 @ui.page('/reports')
 def reports():
-    top(current_page="reports on")
-
+    top()
 @ui.page('/calendar')
 def calendar():
-    top(current_page="calendar of")
-
+    top()
 @ui.page('/invoices')
 def invoice():
-    current_page="invoices of"
-    top(current_page)
+    top()
 @ui.page('/booking')
 def booking():
-    current_page ="booking form for"
-    top(current_page)
+    top()
 @ui.page('/main_menu')
 def main():
-    current_page="main menu of"
     
-    top(current_page)   
+    
+    top()   
     
     with ui.column().classes('w-full h-screen items-center justify-center'):
 
         with ui.card().classes('w-96 rounded-lg  bg-gray-100 items-center p-8').style("box-shadow: 5px 5px 15px 0px rgba(255,255,240, 0.625);") :
         
-            ui.label("menu").classes("underline underline-offset-auto text-2xl text-black")
 
-            ui.button("make a booking", color="black").classes("btn w-50 text-white rounded-lg")
+            ui.button("Make A Booking", color="black").classes("btn w-50 text-white rounded-lg")
         
             ui.space()
         
-            ui.button("invoices", color="black").classes("btn w-50 text-white rounded-lg")
+            ui.button("Invoices", color="black").classes("btn w-50 text-white rounded-lg")
         
             ui.space()
         
-            ui.button("calendar", color="black").classes("btn w-50 text-white rounded-lg")
+            ui.button("Calendar", color="black").classes("btn w-50 text-white rounded-lg")
         
             ui.space()
         
-            ui.button("reports", color="black").classes("btn w-50 text-white rounded-lg")
+            ui.button("Reports", color="black").classes("btn w-50 text-white rounded-lg")
             
 
 #this is the main login, currently does't do anything but output the username and password to the card
@@ -107,9 +128,9 @@ body {
         
         
     
-    current_page="login to"
     
-    top(current_page)
+    
+    top()
     
     with ui.column().classes('w-full h-screen items-center justify-center'):
         

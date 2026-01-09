@@ -5,9 +5,33 @@ import sqlite3
 
 import time
 #functions
+dogbreedcalls=0
 
+catbreedinputcalls=0
 
-
+def handle_change(input1):
+    result=input1.value
+    return result
+    
+def catbreedinput():
+    global catbreedinputcalls
+    if catbreedinputcalls==0:
+         catbreed=ui.input("cat breed",on_change=handle_change(catbreed))
+         catbreedinputcalls+=1
+         ui.alert (f"{result}")
+    else:
+        pass
+def dogbreedinput():
+    global catbreedinputcalls
+    if catbreedinputcalls==0:
+        dogbreed=ui.input("dog breed")
+        if catbreedinputcalls==1:
+            catbreed.delete()
+            catbreedinputcalls==0
+    elif dogbreedcalls==0:
+        dogbreed= ui.input("dog breed")
+        
+        
 def moving_to_booking():
     ui.navigate.to("/booking")
 def moving_to_invoices():
@@ -52,16 +76,17 @@ def reports():
 @ui.page('/calendar')
 def calendar():
     top()
-    
+
     try:
         c_time=time.localtime()
-    except:
+    except:  # noqa: E722
         ui.alert("error obtaining the time")
     try:    
         current_date = time.strftime("%Y-%m-%d", c_time)  
-    except:
+    except:  # noqa: E722
         ui.alert("error obtaining the date ")
-    ui.date(value=f"{current_date}", on_change=lambda e: result.set_text(e.value))
+    with ui.column().classes("w-full align-items:center"):
+        ui.date(value=f"{current_date}", on_change=lambda e: result.set_text(e.value))
     result = ui.label()
 @ui.page('/invoices')
 def invoice():
@@ -79,11 +104,13 @@ def booking():
                 ui.input("surname") 
         ui.space()
         with ui.card().classes("card width:50%"):
-            ui.label("customer name")
+            ui.label("pet name name")
             with ui.row():
                 ui.input("name")
                 ui.space().classes("w-9")   
-                ui.input("species") 
+                with ui.dropdown_button():
+                    ui.item("cat", on_click=catbreedinput)
+                    ui.item("dog", on_click=dogbreedinput)
 
 @ui.page('/main_menu')
 def main():
@@ -129,6 +156,7 @@ body {
     font-family: "DM Sans", sans-serif;
 }
 ''', shared=True) 
+    ui.add_css('''.whiteglow{box-shadow: 5px 5px 15px 0px rgba(255,255,240, 0.625)}''', shared=True)
     
     def moving():
         ui.navigate.to('/main_menu')
@@ -146,7 +174,7 @@ body {
 
             cur.execute('INSERT INTO users (username, password) VALUES (?, ?)', (f"{usernameval}", f"{passwordval}"))
 
-            ct.commit
+            ct.commit()
 
             cur.execute('SELECT * FROM users')
 
@@ -161,7 +189,7 @@ body {
             cur.close()
 
             ct.close()
-        except:    
+        except:  # noqa: E722
             moving()
         
         
@@ -172,7 +200,7 @@ body {
     
     with ui.column().classes('w-full h-screen items-center justify-center'):
         
-        with ui.card().classes('w-96 shadow-xl bg-gray-100 items-center p-8'):
+        with ui.card().classes('w-96 whiteglow shadow-xl bg-gray-100 items-center p-8'):
         
             ui.label('login').classes('text-2xl mb-4')
         

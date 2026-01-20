@@ -1,35 +1,42 @@
-
 from nicegui import ui 
 
 import sqlite3
 
 import time
-#functions
+#globals
 dogbreedcalls=0
 
 catbreedinputcalls=0
 
+#functions
+def rangecheck(value, low, high):
+    if low <= len(value) <= high and not value.isdigit():
+        return True
+    else:
+        return False
 def handle_change(input1):
     result=input1.value
     return result
-    
+    #these functions handle the input for the dog and cat breed inputs and ensure that only one breed input is shown at a time
 def catbreedinput():
     global catbreedinputcalls
+    global catbreed
     if catbreedinputcalls==0:
-         catbreed=ui.input("cat breed",on_change=handle_change(catbreed))
-         catbreedinputcalls+=1
-         ui.alert (f"{result}")
+        catbreed=ui.input("cat breed")
+        catbreedinputcalls+=1
+
     else:
         pass
 def dogbreedinput():
-    global catbreedinputcalls
-    if catbreedinputcalls==0:
+   
+    global dogbreedcalls
+    
+    global dogbreed
+    if dogbreedcalls==0:
         dogbreed=ui.input("dog breed")
-        if catbreedinputcalls==1:
-            catbreed.delete()
-            catbreedinputcalls==0
-    elif dogbreedcalls==0:
-        dogbreed= ui.input("dog breed")
+        dogbreedcalls+=1
+    else:
+        pass
         
         
 def moving_to_booking():
@@ -66,10 +73,13 @@ def top():
   width: fit-content;
 }''')
         with ui.card().classes(" card  w-full items-center justify-center ").style("box-shadow: 5px 5px 15px 0px rgba(255,255,240, 0.625);"):
-            
-            ui.label(' Greenmount Vet').classes('text-black text-4xl font-normal')
-        with ui.card().classes("ribbon vw-75 items-center justify-center ").style("box-shadow: 5px 5px 15px 0px rgba(255,255,240, 0.625);"):
-            ui.label("healing paws, healing hearts")
+            ui.image("https://i.ibb.co/cSPStcvF/gmvets-final-removebg-preview.jpg").classes("w-19 h-15 absolute left-4 top-1/2 -translate-y-1/2 vertical-align:middle")
+            with ui.row().classes("w-full justify-center items-center"):
+                ui.label("Greenmount Vets").classes("text-black text-5xl font-bold")
+        with ui.column().classes("w-full h-10 items-center justify-center"):
+
+            with ui.card().classes("ribbon vw-75 items-center justify-center  ").style("box-shadow: 5px 5px 15px 0px rgba(255,255,240, 0.625);"):
+                ui.label("Healing Paws, Healing Hearts").classes("text-black")
 @ui.page('/reports')
 def reports():
     top()
@@ -88,29 +98,50 @@ def calendar():
     with ui.column().classes("w-full align-items:center"):
         ui.date(value=f"{current_date}", on_change=lambda e: result.set_text(e.value))
     result = ui.label()
+
 @ui.page('/invoices')
 def invoice():
     top()
 @ui.page('/booking')
 def booking():
     top()
+    def iscat():
+        species="cat"
+        ui.notify("species changed")
+    def isdog():
+        species="dog"
+        ui.notify("species changed")
+    def israbbit():
+        species="rabbit"
+        ui.notify("species changed")
+
     ui.space()
     with ui.column().classes("w-full items-center"):
         with ui.card().classes("card width:50%"):
             ui.label("customer name")
             with ui.row():
-                ui.input("forename")
+                custid=ui.input("customer ID", validation=lambda v: 'must be 6 digits long and only contain numbers' if not (len(custid.value) == 6 and custid.value.isdigit()) else None) 
+                ui.space().classes("w-9")
+                fname=ui.input("forename", validation=lambda v: 'must be between 3 and 15 letters long if your name is too long use a shortening' if not rangecheck(fname.value, 3, 15) else None)
                 ui.space().classes("w-9")   
-                ui.input("surname") 
+                sname=ui.input("surname",  validation=lambda v: 'must be between 3 and 15 letters long if your name is too long use a shortening' if not rangecheck(sname.value, 3, 15) else None) 
+                ui.space().classes("w-9")   
+                pnum=ui.input("phone number", validation=lambda v: 'must be 11 digits long and only contain numbers' if not (len(pnum.value) == 11 and pnum.value.isdigit()) else None) 
+                ui.space().classes("w-9")
+                email=ui.input("email address", validation=lambda v: 'must contain an @ and a . ' if not ('@' in email.value and '.' in email.value) else None)
+                ui.space().classes("w-9")
         ui.space()
         with ui.card().classes("card width:50%"):
             ui.label("pet name name")
             with ui.row():
                 ui.input("name")
                 ui.space().classes("w-9")   
-                with ui.dropdown_button():
-                    ui.item("cat", on_click=catbreedinput)
-                    ui.item("dog", on_click=dogbreedinput)
+                with ui.dropdown_button("species").classes("bg-black").props("rounded") :
+                    ui.item("cat", on_click=catbreedinput).on("click", iscat)
+                    ui.item("dog", on_click=dogbreedinput).on("click", isdog)
+                    ui.item("rabbit").on("click", israbbit)
+                    ui.item("other", on_click=lambda: ui.notify("please specify in notes"))
+            ui.textarea("notes include any other relevant information here")
 
 @ui.page('/main_menu')
 def main():
@@ -152,7 +183,7 @@ def login():
 #i have put each item in an individual  ui.add css so it is more readable
     ui.add_css('''
 body {
-    background: radial-gradient(circle, #0A0654 0%,#0C0765 20%, #001f00 100% );
+    background: radial-gradient(circle, #0A0654 0%,#0C0765 20%, #000000 100% );
     font-family: "DM Sans", sans-serif;
 }
 ''', shared=True) 
@@ -189,6 +220,7 @@ body {
             cur.close()
 
             ct.close()
+            moving()
         except:  # noqa: E722
             moving()
         

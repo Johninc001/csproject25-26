@@ -7,7 +7,7 @@ import time
 dogbreedcalls=0
 
 catbreedinputcalls=0
-
+species:str
 #functions
 def rangecheck(value, low, high):
     if low <= len(value) <= high and not value.isdigit():
@@ -21,8 +21,9 @@ def handle_change(input1):
 def catbreedinput():
     global catbreedinputcalls
     global catbreed
+    global species
     if catbreedinputcalls==0:
-        catbreed=ui.input("cat breed")
+        catbreed=ui.input("cat breed", on_change=lambda:species==f"cat({catbreed.value})")
         catbreedinputcalls+=1
 
     else:
@@ -104,23 +105,53 @@ def invoice():
     top()
 @ui.page('/booking')
 def booking():
+    global species
     top()
+    def clearfields():
+        global species
+        custid.value =""
+        species=""
+        fname.value=""
+        sname.value=""
+        pnum.value=""
+        email.value=""
+        petname.value=""
+        petinfo.value=""
     def iscat():
+        global species
         species="cat"
         ui.notify("species changed")
+        
     def isdog():
+        global species
         species="dog"
         ui.notify("species changed")
     def israbbit():
+        global species
         species="rabbit"
         ui.notify("species changed")
-
-    ui.space()
+    def isother():
+        species="other"
+    try:
+        c_time=time.localtime()
+    except:  # noqa: E722
+        ui.alert("error obtaining the time")
+    try:    
+        current_date = time.strftime("%Y-%m-%d", c_time)  
+    except:  # noqa: E722
+        ui.alert("error obtaining the date ")
+    try:
+        current_year, current_month, current_day=current_date.split("-")
+        next_year_just_year=int(current_year)+1
+        next_year=f"{next_year_just_year}-{current_month}-{current_day}"
+        
+    except:
+        ui.notify("pass")
     with ui.column().classes("w-full items-center"):
-        with ui.card().classes("card width:50%"):
+        with ui.card().classes("card width:50%").style("box-shadow: 5px 5px 15px 0px rgba(255,255,240, 0.625);"):
             ui.label("customer name")
             with ui.row():
-                custid=ui.input("customer ID", validation=lambda v: 'must be 6 digits long and only contain numbers' if not (len(custid.value) == 6 and custid.value.isdigit()) else None) 
+                custid=ui.input("customer ID(blank=new)", validation=lambda v: 'must be 6 digits long and only contain numbers' if not (len(custid.value)) == 6 and custid.value.isdigit() or custid.value=="" or custid==None else None).classes("w-50") 
                 ui.space().classes("w-9")
                 fname=ui.input("forename", validation=lambda v: 'must be between 3 and 15 letters long if your name is too long use a shortening' if not rangecheck(fname.value, 3, 15) else None)
                 ui.space().classes("w-9")   
@@ -131,17 +162,26 @@ def booking():
                 email=ui.input("email address", validation=lambda v: 'must contain an @ and a . ' if not ('@' in email.value and '.' in email.value) else None)
                 ui.space().classes("w-9")
         ui.space()
-        with ui.card().classes("card width:50%"):
-            ui.label("pet name name")
+        with ui.card().classes("card width:50%").style("box-shadow: 5px 5px 15px 0px rgba(255,255,240, 0.625);"):
+            ui.label("pet name")
             with ui.row():
-                ui.input("name")
+                petname=ui.input("name")
                 ui.space().classes("w-9")   
                 with ui.dropdown_button("species").classes("bg-black").props("rounded") :
                     ui.item("cat", on_click=catbreedinput).on("click", iscat)
                     ui.item("dog", on_click=dogbreedinput).on("click", isdog)
-                    ui.item("rabbit").on("click", israbbit)
-                    ui.item("other", on_click=lambda: ui.notify("please specify in notes"))
-            ui.textarea("notes include any other relevant information here")
+                    ui.item("rabbit", on_click=israbbit)
+                    ui.item("other", on_click=lambda: ui.notify("please specify in notes")).on("click", isother)
+            petinfo=ui.textarea("notes include any other relevant information\n here").classes("w-full")
+        with ui.card().classes("card width:50%").style("box-shadow: 5px 5px 15px 0px rgba(255,255,240, 0.625);"):
+            ui.label ("booking info")
+            with ui.column():
+                ui.date_input(value=f"{current_date}", on_change=lambda e: result.set_text(e.value))
+        result = ui.label()
+        with ui.card().classes("card width:50%").style("box-shadow: 5px 5px 15px 0px rgba(255,255,240, 0.625);"):
+            staffid=ui.input ("enter your staff id",validation=lambda v: 'must be 6 digits long and only contain numbers' if not (len(staffid.value) == 6 and staffid.value.isdigit()) else None)
+        ui.button("clear", on_click=clearfields, color="red", )
+
 
 @ui.page('/main_menu')
 def main():

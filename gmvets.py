@@ -132,6 +132,15 @@ def booking():
         ui.notify("species changed")
     def isother():
         species="other"
+    def formsubmit():
+        c=sqlite3.connect("booking.db")
+        try:
+            cur=c.cursor
+            if custid.value=="" or None:
+                
+            cur.execute("CREATE TABLE IF NOT EXISTS bookings")
+        except:
+            pass    
     try:
         c_time=time.localtime()
     except:  # noqa: E722
@@ -180,7 +189,8 @@ def booking():
         result = ui.label()
         with ui.card().classes("card width:50%").style("box-shadow: 5px 5px 15px 0px rgba(255,255,240, 0.625);"):
             staffid=ui.input ("enter your staff id",validation=lambda v: 'must be 6 digits long and only contain numbers' if not (len(staffid.value) == 6 and staffid.value.isdigit()) else None)
-        ui.button("clear", on_click=clearfields, color="red", )
+        
+        ui.button("submit",color="black").classes("btn").props("rounded")
 
 
 @ui.page('/main_menu')

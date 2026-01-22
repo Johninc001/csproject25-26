@@ -42,8 +42,12 @@ def dogbreedinput():
         dogbreedcalls+=1
     else:
         pass
-        
-        
+def moving():
+    ui.navigate.to('/main_menu')
+def moving_to_invoices_create():
+    ui.navigate.to("/invoices/create")
+def moving_to_invoices_read():
+    ui.navigate.to("/invoices/read")
 def moving_to_booking():
     ui.navigate.to("/booking")
 def moving_to_invoices():
@@ -77,7 +81,7 @@ def top():
   background-color: #ffffff; /* the main color */
   width: fit-content;
 }''')
-        with ui.card().classes(" card  w-full items-center justify-center ").style("box-shadow: 5px 5px 15px 0px rgba(255,255,240, 0.625);"):
+        with ui.button().classes(" card  w-full items-center justify-center ").style("box-shadow: 5px 5px 15px 0px rgba(255,255,240, 0.625);").on_click(moving):
             ui.image("https://i.ibb.co/cSPStcvF/gmvets-final-removebg-preview.jpg").classes("w-19 h-15 absolute left-4 top-1/2 -translate-y-1/2 vertical-align:middle")
             with ui.row().classes("w-full justify-center items-center"):
                 ui.label("Greenmount Vets").classes("text-black text-5xl font-bold")
@@ -103,10 +107,53 @@ def calendar():
     with ui.column().classes("w-full align-items:center"):
         ui.date(value=f"{current_date}", on_change=lambda e: result.set_text(e.value))
     result = ui.label()
+@ui.page('/invoices/create')
+def createinvoice():
+    top()
+    ui.space()
+    with ui.column().classes("w-full items-center"):
+        with ui.card().classes("card width:50%").style("box-shadow: 5px 5px 15px 0px rgba(255,255,240, 0.625);"):
+            ui.label("customer name")
+            with ui.row():
+                custid=ui.input("customer ID(blank=new)", validation=lambda v: 'must be 12 numbers long' if not (len(custid.value)) == 12 and custid.value.isdigit() or custid.value=="" or custid==None else None).classes("w-50") 
+                ui.space().classes("w-9")
+                fname=ui.input("forename", validation=lambda v: 'must be between 3 and 15 letters long if your name is too long use a shortening' if not rangecheck(fname.value, 3, 15) else None)
+                ui.space().classes("w-9")   
+                sname=ui.input("surname",  validation=lambda v: 'must be between 3 and 15 letters long if your name is too long use a shortening' if not rangecheck(sname.value, 3, 15) else None) 
+                ui.space().classes("w-9")   
+                pnum=ui.input("phone number", validation=lambda v: 'must be 11 digits long and only contain numbers' if not (len(pnum.value) == 11 and pnum.value.isdigit()) else None) 
+                ui.space().classes("w-9")
+                email=ui.input("email address", validation=lambda v: 'must contain an @ and a . ' if not ('@' in email.value and '.' in email.value) else None)
+                ui.space().classes("w-9")
+            with ui.row():
+                creditcard=ui.input("credit(or debit) card number", validation=lambda v: 'must be 16 digits long and only contain numbers' if not (len(creditcard.value) == 16 and creditcard.value.isdigit()) else None)
+                ui.space().classes("w-9")
+                expirydate=ui.input("expiry date", validation=lambda v: 'must be in the format dd/mm/yyyy' if not (len(expirydate.value) == 10 and expirydate.value.isdigit()) else None)
+            ui.space()
+            with ui.card().classes("w-50 items-center justify-center").style("box-shadow: 5px 5px 15px 0px rgba(255,255,240, 0.625);"):
+                ui.label("purchases")
+                purchases=ui.input("list your purchases and press enter after each purchase").on("keydown", lambda e: e.key == "Enter" and purchases.value += "\n")
 
+                ui.button("Make Invoice", color="black", on_click=moving_to_invoices).classes("btn w-50 text-white rounded-lg")
+def readinvoice():
+    top()
+    ui.space()
+    ui.label("Read an Invoice")
 @ui.page('/invoices')
 def invoice():
     top()
+    ui.space()
+    with ui.column().classes('w-full h-screen items-center justify-center'):
+
+        with ui.card().classes('w-96 rounded-lg  bg-gray-100 items-center p-8').style("box-shadow: 5px 5px 15px 0px rgba(255,255,240, 0.625);") :
+        
+
+            ui.button("Make An Invoice", color="black", on_click=moving_to_invoices_create).classes("btn w-50 text-white rounded-lg")
+        
+            ui.space()
+        
+            ui.button("Read Invoices", color="black", on_click=moving_to_invoices_read).classes("btn w-50 text-white rounded-lg")
+
 @ui.page('/booking')
 def booking():
     global species
@@ -260,8 +307,7 @@ body {
 ''', shared=True) 
     ui.add_css('''.whiteglow{box-shadow: 5px 5px 15px 0px rgba(255,255,240, 0.625)}''', shared=True)
     
-    def moving():
-        ui.navigate.to('/main_menu')
+    
     
     def handle_submit():
         usernameval=username.value

@@ -2,12 +2,16 @@ from nicegui import ui
 
 import sqlite3
 
+import random
+
 import time
 #globals
 dogbreedcalls=0
 
+species="other"
+usernameval=""
 catbreedinputcalls=0
-species:str
+
 #functions
 def rangecheck(value, low, high):
     if low <= len(value) <= high and not value.isdigit():
@@ -132,15 +136,25 @@ def booking():
         ui.notify("species changed")
     def isother():
         species="other"
-    def formsubmit():
-        c=sqlite3.connect("booking.db")
-        try:
-            cur=c.cursor
-            if custid.value=="" or None:
-                
-            cur.execute("CREATE TABLE IF NOT EXISTS bookings")
-        except:
-            pass    
+    def functiontomakecustomerid(custid):
+        if custid == "" or custid is None:
+            custid = f"{random.randint(100000000000, 999999999999)}"
+        return custid
+
+    def formsubmit(custid, species, fname, sname, pnum, email, petname, petinfo, staffuname, date):
+        if custid == "" or custid is None:
+            custid = functiontomakecustomerid(custid)
+        
+        c = sqlite3.connect("booking.db")
+        cur = c.cursor()
+        
+        cur.execute("CREATE TABLE IF NOT EXISTS bookings(customerid TEXT,species TEXT,fname TEXT,sname TEXT,pnum TEXT,email TEXT,petname TEXT, date TEXT,petinfo TEXT, staffuname TEXT)")
+        
+        cur.execute("INSERT INTO bookings(customerid,species,fname,sname,pnum,email,petname,date,petinfo, staffuname) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", (custid, species, fname, sname, pnum, email, petname, date, petinfo, staffuname))
+        c.commit()
+        c.close()
+        ui.notify("booking added",color="green")
+    
     try:
         c_time=time.localtime()
     except:  # noqa: E722
@@ -160,7 +174,7 @@ def booking():
         with ui.card().classes("card width:50%").style("box-shadow: 5px 5px 15px 0px rgba(255,255,240, 0.625);"):
             ui.label("customer name")
             with ui.row():
-                custid=ui.input("customer ID(blank=new)", validation=lambda v: 'must be 6 digits long and only contain numbers' if not (len(custid.value)) == 6 and custid.value.isdigit() or custid.value=="" or custid==None else None).classes("w-50") 
+                custid=ui.input("customer ID(blank=new)", validation=lambda v: 'must be 12 numbers long' if not (len(custid.value)) == 12 and custid.value.isdigit() or custid.value=="" or custid==None else None).classes("w-50") 
                 ui.space().classes("w-9")
                 fname=ui.input("forename", validation=lambda v: 'must be between 3 and 15 letters long if your name is too long use a shortening' if not rangecheck(fname.value, 3, 15) else None)
                 ui.space().classes("w-9")   
@@ -185,12 +199,19 @@ def booking():
         with ui.card().classes("card width:50%").style("box-shadow: 5px 5px 15px 0px rgba(255,255,240, 0.625);"):
             ui.label ("booking info")
             with ui.column():
-                ui.date_input(value=f"{current_date}", on_change=lambda e: result.set_text(e.value))
+                date=ui.date_input(value=f"{current_date}", on_change=lambda e: result.set_text(e.value))
         result = ui.label()
         with ui.card().classes("card width:50%").style("box-shadow: 5px 5px 15px 0px rgba(255,255,240, 0.625);"):
-            staffid=ui.input ("enter your staff id",validation=lambda v: 'must be 6 digits long and only contain numbers' if not (len(staffid.value) == 6 and staffid.value.isdigit()) else None)
+            ui.label("staff ID")
+            staffuname=ui.input("enter user name", )
+            
+        with ui.card().classes("card width:50%").style("box-shadow: 5px 5px 15px 0px rgba(255,255,240, 0.625);"):
+            
+            ui.button("submit",color="black",on_click=lambda: formsubmit(custid.value,species,fname.value,sname.value,pnum.value,email.value,petname.value,petinfo.value,staffuname.value,date.value)).classes("btn").props("rounded")
         
-        ui.button("submit",color="black").classes("btn").props("rounded")
+
+        
+            
 
 
 @ui.page('/main_menu')
@@ -222,7 +243,7 @@ def main():
 #this is the main login, currently does't do anything but output the username and password to the card
 @ui.page('/')
 def login():
-
+    global username
     ui.add_head_html('''
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;500;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>

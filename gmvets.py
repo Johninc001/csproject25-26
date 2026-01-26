@@ -128,14 +128,35 @@ def createinvoice():
             with ui.row():
                 creditcard=ui.input("credit(or debit) card number", validation=lambda v: 'must be 16 digits long and only contain numbers' if not (len(creditcard.value) == 16 and creditcard.value.isdigit()) else None)
                 ui.space().classes("w-9")
-                expirydate=ui.input("expiry date", validation=lambda v: 'must be in the format dd/mm/yyyy' if not (len(expirydate.value) == 10 and expirydate.value.isdigit()) else None)
+                expirydate=ui.input("expiry date", validation=lambda v: 'must be in the format dd/mm/yyyy' if not (len(expirydate.value) == 8 and expirydate.value.isalnum()) else None)
             ui.space()
-            with ui.card().classes("w-50 items-center justify-center").style("box-shadow: 5px 5px 15px 0px rgba(255,255,240, 0.625);"):
-                ui.label("purchases")
-                purchases=ui.input("list your purchases and press enter after each purchase").on("keydown", lambda e: e.key == "Enter" and purchases.value += "\n")
+        with ui.card().classes("w-50 items-center justify-center").style("box-shadow: 5px 5px 15px 0px rgba(255,255,240, 0.625);"):
+            ui.label("purchases")
+            purchase_list = []
+            
+            
+            def handle_purchase(purchases):
+                val = purchases.value
+                ui.label(val)
+                if val:
+                    purchase_list.append(val)
+                    purchases.set_value('')
+                    return purchase_list
+            
+            purchases_str=",".join(purchase_list)
+            purchase=" "
+            purchases = ui.input("list your purchases and press enter after each purchase").on("keydown.enter", lambda:purchase==handle_purchase(purchases))
+            ui.button("Make Invoice", color="black", on_click=lambda:handle_invoice_submit(custid.value, fname.value, sname.value, pnum.value, email.value, creditcard.value, expirydate.value, purchases_str)).classes("btn w-50 text-white rounded-lg")
 
-                ui.button("Make Invoice", color="black", on_click=moving_to_invoices).classes("btn w-50 text-white rounded-lg")
-def readinvoice():
+            def handle_invoice_submit(custid, fname, sname, pnum, email, creditcard, expirydate, purchase_list):
+                con=sqlite3.connect("invoices.db")
+                c=con.cursor()
+                c.execute("CREATE TABLE IF NOT EXISTS invoices (custid TEXT, fname TEXT, sname TEXT, pnum TEXT, email TEXT, creditcard TEXT, expirydate TEXT, purchase_list TEXT)")
+                c.execute("INSERT INTO invoices (custid, fname, sname, pnum, email, creditcard, expirydate, purchase_list) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", (custid, fname, sname, pnum, email, creditcard, expirydate, purchase_list))
+                con.commit()
+                con.close()
+@ui.page('/invoices/read')  
+def readinvoice():      
     top()
     ui.space()
     ui.label("Read an Invoice")

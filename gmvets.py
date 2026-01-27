@@ -5,6 +5,8 @@ import sqlite3
 import random
 
 import time
+
+import datetime
 #globals
 dogbreedcalls=0
 
@@ -42,8 +44,14 @@ def dogbreedinput():
         dogbreedcalls+=1
     else:
         pass
+def isdate(date_str):
+    try:
+        datetime.datetime.strptime(date_str, '%m/%y')
+        return True
+    except ValueError:
+        return False
 def moving():
-    ui.navigate.to('/main_menu')
+    ui.navigate.to("/main_menu")
 def moving_to_invoices_create():
     ui.navigate.to("/invoices/create")
 def moving_to_invoices_read():
@@ -58,7 +66,7 @@ def moving_to_calendar():
     ui.navigate.to("/calendar")
 def top():
       #credit for the below belongs to https://css-generators.com/ribbon-shapes/
-        ui.add_css('''
+        ui.add_css("""
         
 .ribbon {
   font-size: 28px;
@@ -80,7 +88,7 @@ def top():
   clip-path: polygon(0 0,calc(var(--s) + var(--d)) 0,calc(var(--s) + var(--d)) var(--d),calc(100% - var(--s) - var(--d)) var(--d),calc(100% - var(--s) - var(--d)) 0,100% 0, calc(100% - var(--c)) calc(50% - var(--d)/2),100% calc(100% - var(--d)),calc(100% - var(--s)) calc(100% - var(--d)),calc(100% - var(--s)) 100%,var(--s) 100%,var(--s) calc(100% - var(--d)),0 calc(100% - var(--d)),var(--c) calc(50% - var(--d)/2));
   background-color: #ffffff; /* the main color */
   width: fit-content;
-}''')
+}""")
         with ui.button().classes(" card  w-full items-center justify-center ").style("box-shadow: 5px 5px 15px 0px rgba(255,255,240, 0.625);").on_click(moving):
             ui.image("https://i.ibb.co/cSPStcvF/gmvets-final-removebg-preview.jpg").classes("w-19 h-15 absolute left-4 top-1/2 -translate-y-1/2 vertical-align:middle")
             with ui.row().classes("w-full justify-center items-center"):
@@ -89,10 +97,10 @@ def top():
 
             with ui.card().classes("ribbon vw-75 items-center justify-center  ").style("box-shadow: 5px 5px 15px 0px rgba(255,255,240, 0.625);"):
                 ui.label("Healing Paws, Healing Hearts").classes("text-black")
-@ui.page('/reports')
+@ui.page("/reports")
 def reports():
     top()
-@ui.page('/calendar')
+@ui.page("/calendar")
 def calendar():
     top()
 
@@ -107,30 +115,41 @@ def calendar():
     with ui.column().classes("w-full align-items:center"):
         ui.date(value=f"{current_date}", on_change=lambda e: result.set_text(e.value))
     result = ui.label()
-@ui.page('/invoices/create')
+@ui.page("/invoices/create")
 def createinvoice():
+    def clearfields():
+        ui.notify("fields cleared")
+        custid.value=""
+        fname.value=""
+        sname.value=""
+        pnum.value=""
+        email.value=""
+        creditcard.value=""
+        expiry.value=""
+        purchase.value="medicine"
+        
     top()
     ui.space()
     with ui.column().classes("w-full items-center"):
         with ui.card().classes("card width:50%").style("box-shadow: 5px 5px 15px 0px rgba(255,255,240, 0.625);"):
             ui.label("customer name")
             with ui.row():
-                custid=ui.input("customer ID(blank=new)", validation=lambda v: 'must be 12 numbers long' if not (len(custid.value)) == 12 and custid.value.isdigit() or custid.value=="" or custid==None else None).classes("w-50") 
+                custid=ui.input("customer ID(blank=new)", validation=lambda v: "must be 12 numbers long" if not (len(custid.value)) == 12 and custid.value.isdigit() or custid.value=="" or custid==None else None).classes("w-50") 
                 ui.space().classes("w-9")
-                fname=ui.input("forename", validation=lambda v: 'must be between 3 and 15 letters long if your name is too long use a shortening' if not rangecheck(fname.value, 3, 15) else None)
+                fname=ui.input("forename", validation=lambda v: "must be between 3 and 15 letters long if your name is too long use a shortening" if not rangecheck(fname.value, 3, 15) else None)
                 ui.space().classes("w-9")   
-                sname=ui.input("surname",  validation=lambda v: 'must be between 3 and 15 letters long if your name is too long use a shortening' if not rangecheck(sname.value, 3, 15) else None) 
+                sname=ui.input("surname",  validation=lambda v: "must be between 3 and 15 letters long if your name is too long use a shortening" if not rangecheck(sname.value, 3, 15) else None) 
                 ui.space().classes("w-9")   
-                pnum=ui.input("phone number", validation=lambda v: 'must be 11 digits long and only contain numbers' if not (len(pnum.value) == 11 and pnum.value.isdigit()) else None) 
+                pnum=ui.input("phone number", validation=lambda v: "must be 11 digits long and only contain numbers" if not (len(pnum.value) == 11 and pnum.value.isdigit()) else None) 
                 ui.space().classes("w-9")
-                email=ui.input("email address", validation=lambda v: 'must contain an @ and a . ' if not ('@' in email.value and '.' in email.value) else None)
+                email=ui.input("email address", validation=lambda v: "must contain an @ and a . " if not ("@" in email.value and "." in email.value) else None)
                 ui.space().classes("w-9")
             with ui.row():
-                creditcard=ui.input("credit(or debit) card number", validation=lambda v: 'must be 16 digits long and only contain numbers' if not (len(creditcard.value) == 16 and creditcard.value.isdigit()) else None)
+                creditcard=ui.input("credit(or debit) card number", validation=lambda v: "must be 16 digits long and only contain numbers" if not (len(creditcard.value) == 16 and creditcard.value.isdigit()) else None)
                 ui.space().classes("w-9")
-                expirydate=ui.input("expiry date", validation=lambda v: 'must be in the format dd/mm/yyyy' if not (len(expirydate.value) == 8 and expirydate.value.isalnum()) else None)
+                expirydate=ui.input("expiry date", validation=lambda v: "must be in the format mm/yy" if isdate(expirydate.value) == False else None   )
             ui.space()
-        with ui.card().classes("w-50 items-center justify-center").style("box-shadow: 5px 5px 15px 0px rgba(255,255,240, 0.625);"):
+        with ui.card().classes("w-85 items-center justify-center").style("box-shadow: 5px 5px 15px 0px rgba(255,255,240, 0.625);"):
             ui.label("purchases")
             purchase_list = []
             
@@ -140,12 +159,13 @@ def createinvoice():
                 ui.label(val)
                 if val:
                     purchase_list.append(val)
-                    purchases.set_value('')
-                    return purchase_list
-            
+                    
+                    return purchase_list and purchases.value=="medicine"
+            purchase_options=["medicine","Carprofen - £25.50", "Meloxicam - £18.75", "Furosemide - £12.40", "Amoxicillin - £15.90", "Metronidazole - £14.20", "Prednisolone - £9.80", "Gabapentin - £22.60", "Enrofloxacin - £19.50", "Clindamycin - £16.30", "Pimobendan - £34.00"]
             purchases_str=",".join(purchase_list)
             purchase=" "
-            purchases = ui.input("list your purchases and press enter after each purchase").on("keydown.enter", lambda:purchase==handle_purchase(purchases))
+            ui.label("on the dropdown below press enter after each selection to add it to the purchase list")
+            purchases = ui.select(purchase_options, with_input=True,value="medicine").on("keydown.enter", lambda:purchase==handle_purchase(purchases)).style("box-shadow: 2px 2px 5px 0px rgba(100,123,238, 0.625);").props("outlined")
             ui.button("Make Invoice", color="black", on_click=lambda:handle_invoice_submit(custid.value, fname.value, sname.value, pnum.value, email.value, creditcard.value, expirydate.value, purchases_str)).classes("btn w-50 text-white rounded-lg")
 
             def handle_invoice_submit(custid, fname, sname, pnum, email, creditcard, expirydate, purchase_list):
@@ -155,18 +175,18 @@ def createinvoice():
                 c.execute("INSERT INTO invoices (custid, fname, sname, pnum, email, creditcard, expirydate, purchase_list) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", (custid, fname, sname, pnum, email, creditcard, expirydate, purchase_list))
                 con.commit()
                 con.close()
-@ui.page('/invoices/read')  
+@ui.page("/invoices/read")  
 def readinvoice():      
     top()
     ui.space()
     ui.label("Read an Invoice")
-@ui.page('/invoices')
+@ui.page("/invoices")
 def invoice():
     top()
     ui.space()
-    with ui.column().classes('w-full h-screen items-center justify-center'):
+    with ui.column().classes("w-full h-screen items-center justify-center"):
 
-        with ui.card().classes('w-96 rounded-lg  bg-gray-100 items-center p-8').style("box-shadow: 5px 5px 15px 0px rgba(255,255,240, 0.625);") :
+        with ui.card().classes("w-96 rounded-lg  bg-gray-100 items-center p-8").style("box-shadow: 5px 5px 15px 0px rgba(255,255,240, 0.625);") :
         
 
             ui.button("Make An Invoice", color="black", on_click=moving_to_invoices_create).classes("btn w-50 text-white rounded-lg")
@@ -175,7 +195,7 @@ def invoice():
         
             ui.button("Read Invoices", color="black", on_click=moving_to_invoices_read).classes("btn w-50 text-white rounded-lg")
 
-@ui.page('/booking')
+@ui.page("/booking")
 def booking():
     global species
     top()
@@ -242,15 +262,15 @@ def booking():
         with ui.card().classes("card width:50%").style("box-shadow: 5px 5px 15px 0px rgba(255,255,240, 0.625);"):
             ui.label("customer name")
             with ui.row():
-                custid=ui.input("customer ID(blank=new)", validation=lambda v: 'must be 12 numbers long' if not (len(custid.value)) == 12 and custid.value.isdigit() or custid.value=="" or custid==None else None).classes("w-50") 
+                custid=ui.input("customer ID(blank=new)", validation=lambda v: "must be 12 numbers long" if not (len(custid.value)) == 12 and custid.value.isdigit() or custid.value=="" or custid==None else None).classes("w-50") 
                 ui.space().classes("w-9")
-                fname=ui.input("forename", validation=lambda v: 'must be between 3 and 15 letters long if your name is too long use a shortening' if not rangecheck(fname.value, 3, 15) else None)
+                fname=ui.input("forename", validation=lambda v: "must be between 3 and 15 letters long if your name is too long use a shortening" if not rangecheck(fname.value, 3, 15) else None)
                 ui.space().classes("w-9")   
-                sname=ui.input("surname",  validation=lambda v: 'must be between 3 and 15 letters long if your name is too long use a shortening' if not rangecheck(sname.value, 3, 15) else None) 
+                sname=ui.input("surname",  validation=lambda v: "must be between 3 and 15 letters long if your name is too long use a shortening" if not rangecheck(sname.value, 3, 15) else None) 
                 ui.space().classes("w-9")   
-                pnum=ui.input("phone number", validation=lambda v: 'must be 11 digits long and only contain numbers' if not (len(pnum.value) == 11 and pnum.value.isdigit()) else None) 
+                pnum=ui.input("phone number", validation=lambda v: "must be 11 digits long and only contain numbers" if not (len(pnum.value) == 11 and pnum.value.isdigit()) else None) 
                 ui.space().classes("w-9")
-                email=ui.input("email address", validation=lambda v: 'must contain an @ and a . ' if not ('@' in email.value and '.' in email.value) else None)
+                email=ui.input("email address", validation=lambda v: "must contain an @ and a . " if not ("@" in email.value and "." in email.value) else None)
                 ui.space().classes("w-9")
         ui.space()
         with ui.card().classes("card width:50%").style("box-shadow: 5px 5px 15px 0px rgba(255,255,240, 0.625);"):
@@ -276,21 +296,21 @@ def booking():
         with ui.card().classes("card width:50%").style("box-shadow: 5px 5px 15px 0px rgba(255,255,240, 0.625);"):
             
             ui.button("submit",color="black",on_click=lambda: formsubmit(custid.value,species,fname.value,sname.value,pnum.value,email.value,petname.value,petinfo.value,staffuname.value,date.value)).classes("btn").props("rounded")
-        
+            ui.button("clear",color="red",on_click=clearfields()).classes("btn")
 
         
             
 
 
-@ui.page('/main_menu')
+@ui.page("/main_menu")
 def main():
     
     
     top()   
     
-    with ui.column().classes('w-full h-screen items-center justify-center'):
+    with ui.column().classes("w-full h-screen items-center justify-center"):
 
-        with ui.card().classes('w-96 rounded-lg  bg-gray-100 items-center p-8').style("box-shadow: 5px 5px 15px 0px rgba(255,255,240, 0.625);") :
+        with ui.card().classes("w-96 rounded-lg  bg-gray-100 items-center p-8").style("box-shadow: 5px 5px 15px 0px rgba(255,255,240, 0.625);") :
         
 
             ui.button("Make A Booking", color="black", on_click=moving_to_booking).classes("btn w-50 text-white rounded-lg")
@@ -308,25 +328,25 @@ def main():
             ui.button("Reports", color="black", on_click=moving_to_report).classes("btn w-50 text-white rounded-lg")
             
 
-#this is the main login, currently does't do anything but output the username and password to the card
-@ui.page('/')
+#this is the main login, currently does"t do anything but output the username and password to the card
+@ui.page("/")
 def login():
     global username
-    ui.add_head_html('''
+    ui.add_head_html("""
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;500;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
 <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.10/dist/full.min.css" rel="stylesheet" />
-''', shared=True)
+""", shared=True)
 
 #                                   css
 #i have put each item in an individual  ui.add css so it is more readable
-    ui.add_css('''
+    ui.add_css("""
 body {
     background: radial-gradient(circle, #0A0654 0%,#0C0765 20%, #000000 100% );
     font-family: "DM Sans", sans-serif;
 }
-''', shared=True) 
-    ui.add_css('''.whiteglow{box-shadow: 5px 5px 15px 0px rgba(255,255,240, 0.625)}''', shared=True)
+""", shared=True) 
+    ui.add_css(""".whiteglow{box-shadow: 5px 5px 15px 0px rgba(255,255,240, 0.625)}""", shared=True)
     
     
     
@@ -339,13 +359,13 @@ body {
         try:
             cur=ct.cursor()
 
-            cur.execute('''CREATE TABLE IF NOT EXISTS users (username TEXT PRIMARY KEY, password TEXT)''')
+            cur.execute("""CREATE TABLE IF NOT EXISTS users (username TEXT PRIMARY KEY, password TEXT)""")
 
-            cur.execute('INSERT INTO users (username, password) VALUES (?, ?)', (f"{usernameval}", f"{passwordval}"))
+            cur.execute("INSERT INTO users (username, password) VALUES (?, ?)", (f"{usernameval}", f"{passwordval}"))
 
             ct.commit()
 
-            cur.execute('SELECT * FROM users')
+            cur.execute("SELECT * FROM users")
 
             rows = cur.fetchall()
 
@@ -368,19 +388,19 @@ body {
     
     top()
     
-    with ui.column().classes('w-full h-screen items-center justify-center'):
+    with ui.column().classes("w-full h-screen items-center justify-center"):
         
-        with ui.card().classes('w-96 whiteglow shadow-xl bg-gray-100 items-center p-8'):
+        with ui.card().classes("w-96 whiteglow shadow-xl bg-gray-100 items-center p-8"):
         
-            ui.label('login').classes('text-2xl mb-4')
+            ui.label("login").classes("text-2xl mb-4")
         
-            username = ui.input('username').classes('w-full')
+            username = ui.input("username").classes("w-full")
         
-            ui.separator().classes('w-full border-gray-400 my-4')
+            ui.separator().classes("w-full border-gray-400 my-4")
         
-            password = ui.input('password', password=True).classes('w-full')
+            password = ui.input("password", password=True).classes("w-full")
         
-            ui.space().classes('h-8')
+            ui.space().classes("h-8")
 
             ui.button("submit", color="black", on_click=handle_submit).classes("btn text-white rounded-lg")
 

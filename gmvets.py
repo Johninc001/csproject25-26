@@ -20,13 +20,26 @@ def rangecheck(value, low, high):
         return True
     else:
         return False
+def mmyy_format(datestr):
+    try:
+        mm,yy = datestr.split("/")
+        validmonths=["1","2","3","4","5","6","7","8","9","10","11","12","01","02","03","04","05","06","07","08","09"]
+        validyears=["00","01","02","03","04","05","06","07","08","09","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31","32","33","34","35","36","37","38","39","40","41","42","43","44","45","46","47","48","49","50","51","52","53","54","55","56","57","58","59","60","61","62","63","64","65","66","67","68","69","70","71","72","73","74","75","76","77","78","79","80","81","82","83","84","85","86","87","88","89","90","91","92","93","94","95","96","97","98","99"]# ai use declaration. prompt:list every number from 00-99 in a comma separated list with speech marks around each number
+        if mm not in validmonths:
+            return False
+        elif yy not in validyears:
+            return False
+        else:
+            return True
+    except ValueError:
+        return False
 def handle_change(input1):
     result=input1.value
     return result
    
-def isdate(date_str):
+def isdate(datestr):
     try:
-        datetime.datetime.strptime(date_str, '%m/%y')
+        datetime.datetime.strptime(datestr, '%m/%y')
         return True
     except ValueError:
         return False
@@ -72,22 +85,22 @@ def top(islogin):
   width: fit-content;
 }""")
         if islogin==False:#if user is logged in show this version of the top bar
-            with ui.button().classes(" card  w-full items-center justify-center ").style("box-shadow: 5px 5px 15px 0px rgba(255,255,240, 0.625);").on_click(moving):
+            with ui.button().classes(" card  w-full items-center justify-center whiteglow").on_click(moving):
                 ui.image("https://i.ibb.co/cSPStcvF/gmvets-final-removebg-preview.jpg").classes("w-19 h-15 absolute left-4 top-1/2 -translate-y-1/2 vertical-align:middle")
                 with ui.row().classes("w-full justify-center items-center"):
                     ui.label("Greenmount Vets").classes("text-black text-5xl font-bold")
             with ui.column().classes("w-full h-10 items-center justify-center"):
 
-                with ui.card().classes("ribbon vw-75 items-center justify-center  ").style("box-shadow: 5px 5px 15px 0px rgba(255,255,240, 0.625);"):
+                with ui.card().classes("ribbon vw-75 items-center justify-center  whiteglow"):
                     ui.label("Healing Paws, Healing Hearts").classes("text-black")
         else: #if user is not logged in show this version of the top bar
-             with ui.button().classes(" card  w-full items-center justify-center ").style("box-shadow: 5px 5px 15px 0px rgba(255,255,240, 0.625);").on_click(moving):
+             with ui.button().classes(" card  w-full items-center justify-center whiteglow"):
                 ui.image("https://i.ibb.co/cSPStcvF/gmvets-final-removebg-preview.jpg").classes("w-19 h-15 absolute left-4 top-1/2 -translate-y-1/2 vertical-align:middle")
                 with ui.row().classes("w-full justify-center items-center"):
                     ui.label("Greenmount Vets").classes("text-black text-5xl font-bold")
              with ui.column().classes("w-full h-10 items-center justify-center"):
 
-                with ui.card().classes("ribbon vw-75 items-center justify-center  ").style("box-shadow: 5px 5px 15px 0px rgba(255,255,240, 0.625);"):
+                with ui.card().classes("ribbon vw-75 items-center justify-center whiteglow"):
                     ui.label("Healing Paws, Healing Hearts").classes("text-black")           
 @ui.page("/reports")
 def reports():
@@ -123,7 +136,7 @@ def create_invoice():
     top(islogin=False)
     ui.space()
     with ui.column().classes("w-full items-center"):
-        with ui.card().classes("card width:50%").style("box-shadow: 5px 5px 15px 0px rgba(255,255,240, 0.625);"):
+        with ui.card().classes("card width:50% whiteglow"):
             ui.label("customer name")
             with ui.row():
                 custid=ui.input("customer ID(blank=new)", validation=lambda v: None if v == "" or v is None else ("must be 12 numbers long and numeric" if not (v.isdigit() and len(v) == 12) else None)).classes("w-50")
@@ -139,9 +152,9 @@ def create_invoice():
             with ui.row():
                 creditcard=ui.input("credit(or debit) card number", validation=lambda v: "must be 16 digits long and only contain numbers" if not (len(creditcard.value) == 16 and creditcard.value.isdigit()) else None)
                 ui.space().classes("w-9")
-                expirydate=ui.input("expiry date", validation=lambda v: "must be in the format mm/yy" if isdate(expirydate.value) == False else None   )
+                expirydate=ui.input("expiry date", validation=lambda v: "must be in the format mm/yy" if mmyy_format(expirydate.value) == False else None   )
             ui.space()
-        with ui.card().classes("w-85 items-center justify-center").style("box-shadow: 5px 5px 15px 0px rgba(255,255,240, 0.625);"):
+        with ui.card().classes("w-85 whiteglow items-center justify-center"):
             ui.label("purchases")
             purchaselist = []
             purchaseoptions=["medicine","Carprofen - £25.50", "Meloxicam - £18.75", "Furosemide - £12.40", "Amoxicillin - £15.90", "Metronidazole - £14.20", "Prednisolone - £9.80", "Gabapentin - £22.60", "Enrofloxacin - £19.50", "Clindamycin - £16.30", "Pimobendan - £34.00"]
@@ -152,7 +165,7 @@ def create_invoice():
                     purchaselist.append(val)
                     label.set_text(", ".join(purchaselist))
             ui.label("select a purchase and click \"Add to list\"")
-            purchases = ui.select(purchaseoptions, with_input=True,value="medicine").style("box-shadow: 2px 2px 5px 0px rgba(100,123,238, 0.625);").props("outlined")
+            purchases = ui.select(purchaseoptions, with_input=True,value="medicine").classes("w-50 whiteglow").props("outlined color=black")
             ui.button("Add to list", on_click=lambda: add_purchase(purchases, purchaseslabel)).classes("btn w-30")
             ui.button("Make Invoice", color="black", on_click=lambda:handle_invoice_submit(custid.value, fname.value, sname.value, pnum.value, email.value, creditcard.value, expirydate.value, ",".join(purchaselist))).classes("btn w-50 text-white rounded-lg")
 
@@ -174,7 +187,7 @@ def invoice():
     ui.space()
     with ui.column().classes("w-full h-screen items-center justify-center"):
 
-        with ui.card().classes("w-96 rounded-lg items-center p-8").style("box-shadow: 5px 5px 15px 0px rgba(255,255,240, 0.625);") :
+        with ui.card().classes("w-96 rounded-lg whiteglow items-center p-8"):
         
 
             ui.button("Make An Invoice", color="black", on_click=moving_to_invoices_create).classes("btn w-50 text-white rounded-lg")
@@ -254,7 +267,7 @@ def booking():
     except:
         ui.notify("pass")
     with ui.column().classes("w-full items-center"):
-        with ui.card().classes("card width:50%").style("box-shadow: 5px 5px 15px 0px rgba(255,255,240, 0.625);"):
+        with ui.card().classes("card width:50% whiteglow"):
             ui.label("customer name")
             with ui.row():
                 custid=ui.input("customer ID(blank=new)", validation=lambda v: "must be 12 numbers long" if not (len(custid.value)) == 12 and custid.value.isdigit() or custid.value=="" or custid==None else None).classes("w-50") 
@@ -268,7 +281,7 @@ def booking():
                 email=ui.input("email address", validation=lambda v: "must contain an @ and a . " if not ("@" in email.value and "." in email.value) else None)
                 ui.space().classes("w-9")
         ui.space()
-        with ui.card().classes("card width:50%").style("box-shadow: 5px 5px 15px 0px rgba(255,255,240, 0.625);"):
+        with ui.card().classes("card width:50% whiteglow"):
             ui.label("pet name")
             with ui.row():
                 petname=ui.input("name")
@@ -276,17 +289,16 @@ def booking():
                 
                 ui.select(["cat","dog","rabbit","other"], label="species", on_change=set_species).classes("w-50")
             petinfo=ui.textarea("notes include any other relevant information\n here").classes("w-full")
-        with ui.card().classes("card width:50%").style("box-shadow: 5px 5px 15px 0px rgba(255,255,240, 0.625);"):
+        with ui.card().classes("card width:50% whiteglow"):
             ui.label ("booking info")
             with ui.column():
                 date=ui.date_input(value=f"{currentdate}", on_change=lambda e: result.set_text(e.value))
         result = ui.label()
-        with ui.card().classes("card width:50%").style("box-shadow: 5px 5px 15px 0px rgba(255,255,240, 0.625);"):
+        with ui.card().classes("card whiteglow width:50%"):
             ui.label("staff ID")
             staffuname=ui.input("enter user name", )
             
-        with ui.card().classes("card width:50%").style("box-shadow: 5px 5px 15px 0px rgba(255,255,240, 0.625);"):
-            
+        with ui.card().classes("card width:50%").classes("whiteglow"):
             ui.button("submit",color="black",on_click=lambda: formsubmit(custid.value,species,fname.value,sname.value,pnum.value,email.value,petname.value,petinfo.value,staffuname.value,date.value)).classes("btn").props("rounded")
             ui.button("clear",color="red",on_click=clearfields()).classes("btn")
 
@@ -302,14 +314,14 @@ def main():
     
     with ui.column().classes("w-full h-screen items-center justify-center"):
 
-        with ui.card().classes("w-96 rounded-lg items-center p-8").style("box-shadow: 5px 5px 15px 0px rgba(255,255,240, 0.625);") :
+        with ui.card().classes("w-96 whiteglow rounded-lg items-center p-8") :
         
 
-            ui.button("Make A Booking", color="black", on_click=moving_to_booking).classes("btn w-50 text-white rounded-lg")
+            ui.button("Make A Booking", color="black", on_click=moving_to_booking).classes("btn w-50  text-white rounded-lg")
         
             ui.space()
         
-            ui.button("Invoices", color="black", on_click=moving_to_invoices ).classes("btn w-50 text-white rounded-lg")
+            ui.button("Invoices", color="black", on_click=moving_to_invoices ).classes("btn w-50  text-white rounded-lg")
         
             ui.space()
         
@@ -338,38 +350,28 @@ def login():
     ui.add_css(""".whiteglow{box-shadow: 5px 5px 15px 0px rgba(255,255,240, 0.625)}""", shared=True)
     
     
-    
+    def clear_fields():
+        username.value=""
+        password.value=""
     def handle_submit():
-        usernameval=username.value
-    
-        passwordval=password.value
+        usernameval = username.value
+        passwordval = password.value
         
-        ct=sqlite3.connect("gmvets.db")
         try:
-            cur=ct.cursor()
-
-            cur.execute("""CREATE TABLE IF NOT EXISTS users (username TEXT PRIMARY KEY, password TEXT)""")
-
-            cur.execute("INSERT INTO users (username, password) VALUES (?, ?)", (f"{usernameval}", f"{passwordval}"))
-
-            ct.commit()
-
-            cur.execute("SELECT * FROM users")
-
-            rows = cur.fetchall()
-
-            for row in rows:
-
-                if rows != ():
-
-                    ui.label(row)
-
-            cur.close()
-
-            ct.close()
-            moving()
-        except:  # noqa: E722
-            moving()
+            conn = sqlite3.connect("gmvets.db")
+            cur = conn.cursor()
+            # Verify if the username and password match a record in the users table
+            cur.execute("SELECT * FROM users WHERE username = ? AND password = ?", (usernameval, passwordval))
+            user = cur.fetchone()
+            conn.close()
+            
+            if user:
+                moving()
+            else:
+                clear_fields()
+                ui.notify("Invalid username or password. Please try again.", color="red")
+        except sqlite3.Error as e:
+            ui.notify(f"Database error: {e}", color="red")
         
         
     
@@ -394,6 +396,7 @@ def login():
             ui.button("submit", color="black", on_click=handle_submit).classes("btn text-white rounded-lg")
 
 ui.add_css("""
+#defaults
 :root{
   --background: radial-gradient(circle, #0A0654 0%,#0C0765 20%, #000000 100%);
   --card: #f3f4f6;
@@ -409,9 +412,9 @@ body {
     color: var(--text) !important; 
 }
 """, shared=True)
-#credit to https://stackoverflow.com however i have modified it to fit my needs and have lost the original question link and it only led to the theme change part i made the other parts through local storage snippets
+#credit to https://stackoverflow.com however i have modified it to fit my needs and have lost the original question link although it only led to the theme change part i made the other parts through various code snippets
 ui.add_head_html("""
-<script>
+<script>#theme definitions
 const THEMES = {
   default: { background: 'radial-gradient(circle, #0A0654 0%,#0C0765 20%, #000000 100%)', card:'#f3f4f6', text:'#000000' },
   glowing: { background: 'radial-gradient(circle,#a9a9a9 25%, #0b0f1a 100%)', card:'#1f2937', text:'#e5e7eb' },
@@ -422,10 +425,10 @@ const THEMES = {
 function applyTheme(name){
   const t = THEMES[name] || THEMES.default;
   const r = document.documentElement.style;
-  r.setProperty('--background', t.background);
-  r.setProperty('--card', t.card);
-  r.setProperty('--text', t.text);
-  localStorage.setItem('gmvets_theme', name);
+  r.setProperty('--background', t.background);#changes background
+  r.setProperty('--card', t.card); #changes card color
+  r.setProperty('--text', t.text); #changes text color
+  localStorage.setItem('gmvets_theme', name);#saves theme to browswer local storage
 }
 document.addEventListener('DOMContentLoaded', ()=> {
   const saved = localStorage.getItem('gmvets_theme') || 'default';

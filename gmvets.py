@@ -1,4 +1,5 @@
-from nicegui import ui 
+#my coding project for my computer science a level.
+from nicegui import ui , app
 
 import sqlite3
 
@@ -8,14 +9,18 @@ import time
 
 import datetime
 #globals
-dogbreedcalls=0
-
-species="other"
 usernameval=""
-catbreedinputcalls=0
+
 
 #functions
-def rangecheck(value, low, high):
+def column_as_list( table, column):
+    conn = sqlite3.connect('gmvets.db')
+    cur = conn.cursor()
+    cur.execute(f"SELECT {column} FROM {table}")
+    vals = ["" if v[0] is None else str(v[0]) for v in cur.fetchall()]
+    conn.close()
+    return vals
+def range_check(value, low, high):
     if low <= len(value) <= high and not value.isdigit():
         return True
     else:
@@ -37,7 +42,7 @@ def handle_change(input1):
     result=input1.value
     return result
    
-def isdate(datestr):
+def is_date(datestr):
     try:
         datetime.datetime.strptime(datestr, '%m/%y')
         return True
@@ -105,10 +110,11 @@ def top(islogin):
 @ui.page("/reports")
 def reports():
     top(islogin=False)
+    ui.space()
 @ui.page("/calendar")
 def calendar():
     top(islogin=False)
-
+    datelist = column_as_list("bookings", "date")
     try:
         ctime=time.localtime()
     except:  # noqa: E722
@@ -118,21 +124,35 @@ def calendar():
     except:  # noqa: E722
         ui.alert("error obtaining the date ")
     with ui.column().classes("w-full align-items:center"):
-        ui.date(value=f"{currentdate}", on_change=lambda e: result.set_text(e.value))
-    result = ui.label()
+        ui.date(value=f"{currentdate}", on_change=lambda e: handle_change(e)).classes("w-50 whiteglow")
+        result = ui.label()
+        results_container = ui.column()
+        
+        def handle_change(input1):
+            results_container.clear()
+            selected_date = input1.value
+            result.set_text(selected_date)
+            
+            # Get all booking data once
+            fnames = column_as_list('bookings', 'fname')
+            snames = column_as_list('bookings', 'sname')
+            species_list = column_as_list('bookings', 'species')
+            staffunames = column_as_list('bookings', 'staffuname')
+            
+            onefound = 0
+            for i in range(len(datelist)):
+                if selected_date == datelist[i]:
+                    ui.label(f"booking: {fnames[i]} {snames[i]} for a {species_list[i]} booked by staff member {staffunames[i]}").classes("card w-50 whiteglow")
+                    onefound += 1
+                elif datelist[i] == "":
+                    break
+            
+            if onefound == 0:
+                ui.label("no bookings for this date").classes("card w-50 whiteglow")    
+        
+        
 @ui.page("/invoices/create")
 def create_invoice():
-    def clear_fields():
-        ui.notify("fields cleared")
-        custid.value=""
-        fname.value=""
-        sname.value=""
-        pnum.value=""
-        email.value=""
-        creditcard.value=""
-        expirydate.value=""
-        purchases.value="medicine"
-        
     top(islogin=False)
     ui.space()
     with ui.column().classes("w-full items-center"):
@@ -141,9 +161,9 @@ def create_invoice():
             with ui.row():
                 custid=ui.input("customer ID(blank=new)", validation=lambda v: None if v == "" or v is None else ("must be 12 numbers long and numeric" if not (v.isdigit() and len(v) == 12) else None)).classes("w-50")
                 ui.space().classes("w-9")
-                fname=ui.input("forename", validation=lambda v: "must be between 3 and 15 letters long if your name is too long use a shortening" if not rangecheck(v, 3, 15) else None)
+                fname=ui.input("forename", validation=lambda v: "must be between 3 and 15 letters long if your name is too long use a shortening" if not range_check(v, 3, 15) else None)
                 ui.space().classes("w-9")   
-                sname=ui.input("surname",  validation=lambda v: "must be between 3 and 15 letters long if your name is too long use a shortening" if not rangecheck(v, 3, 15) else None) 
+                sname=ui.input("surname",  validation=lambda v: "must be between 3 and 15 letters long if your name is too long use a shortening" if not range_check(v, 3, 15) else None) 
                 ui.space().classes("w-9")   
                 pnum=ui.input("phone number", validation=lambda v: "must be 11 digits long and only contain numbers" if not (len(v) == 11 and v.isdigit()) else None) 
                 ui.space().classes("w-9")
@@ -166,8 +186,23 @@ def create_invoice():
                     label.set_text(", ".join(purchaselist))
             ui.label("select a purchase and click \"Add to list\"")
             purchases = ui.select(purchaseoptions, with_input=True,value="medicine").classes("w-50 whiteglow").props("outlined color=black")
+            
+            def clear_fields():
+                ui.notify("fields cleared")
+                custid.value=""
+                fname.value=""
+                sname.value=""
+                pnum.value=""
+                email.value=""
+                creditcard.value=""
+                expirydate.value=""
+                purchases.value="medicine"
+                purchaselist.clear()
+                purchaseslabel.set_text("current purchases: none")
+            
             ui.button("Add to list", on_click=lambda: add_purchase(purchases, purchaseslabel)).classes("btn w-30")
             ui.button("Make Invoice", color="black", on_click=lambda:handle_invoice_submit(custid.value, fname.value, sname.value, pnum.value, email.value, creditcard.value, expirydate.value, ",".join(purchaselist))).classes("btn w-50 text-white rounded-lg")
+            ui.button("Clear Fields", color="red", on_click=clear_fields).classes("btn w-50 text-white rounded-lg")
 
             def handle_invoice_submit(custid, fname, sname, pnum, email, creditcard, expirydate, purchaselist):
                 con=sqlite3.connect("gmvets.db")
@@ -176,6 +211,8 @@ def create_invoice():
                 c.execute("INSERT INTO invoices (custid, fname, sname, pnum, email, creditcard, expirydate, purchaselist) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", (custid, fname, sname, pnum, email, creditcard, expirydate, purchaselist))
                 con.commit()
                 con.close()
+                clear_fields()
+                ui.notify("Invoice created", color="green")
 @ui.page("/invoices/read")  
 def readinvoice():      
     top(islogin=False)
@@ -199,46 +236,19 @@ def invoice():
 @ui.page("/booking")
 def booking():
     global species
+    global usernameval
     top(islogin=False)
     def set_species(e):
         global species
         species = e.value
         ui.notify("species changed")
-    def clearfields():# as
-        global species
-        custid.value =""
-        species=""
-        fname.value=""
-        sname.value=""
-        pnum.value=""
-        email.value=""
-        petname.value=""
-        petinfo.value=""
-    def iscat():
-        global species
-        species="cat"
-        ui.notify("species changed")
-        
-    def isdog():
-        global species
-        species="dog"
-        ui.notify("species changed")
-    def israbbit():
-        global species
-        species="rabbit"
-        ui.notify("species changed")
-    def isother():
-        global species
-        species="other"
-        ui.notify("species changed")
-    def functiontomakecustomerid(custid):
-        if custid == "" or custid is None:
-            custid = f"{random.randint(100000000000, 999999999999)}"
-        return custid
+    
+    
+    
 
     def formsubmit(custid, species, fname, sname, pnum, email, petname, petinfo, staffuname, date):
         if custid == "" or custid is None:
-            custid = functiontomakecustomerid(custid)
+            custid = functiontomakecustomerid(custid, "fname", "sname", "petname")
         
         c = sqlite3.connect("gmvets.db")
         cur = c.cursor()
@@ -249,6 +259,7 @@ def booking():
         c.commit()
         c.close()
         ui.notify("booking added",color="green")
+        clear_booking_fields()
     
     try:
         ctime=time.localtime()#get current time(c is for current)
@@ -268,17 +279,18 @@ def booking():
         ui.notify("pass")
     with ui.column().classes("w-full items-center"):
         with ui.card().classes("card width:50% whiteglow"):
-            ui.label("customer name")
+            
+            ui.label(f"customer name")
             with ui.row():
-                custid=ui.input("customer ID(blank=new)", validation=lambda v: "must be 12 numbers long" if not (len(custid.value)) == 12 and custid.value.isdigit() or custid.value=="" or custid==None else None).classes("w-50") 
+                custid=ui.input("customer ID(blank=new)", validation=lambda v: "must be 12 numbers long" if not (len(custid.value)) == 12 and custid.value.isdigit() or custid.value=="" or custid==None else None).classes("w-50 h-15").style("background-color: #a2a2a2; text-color: black;").props("outlined")
                 ui.space().classes("w-9")
-                fname=ui.input("forename", validation=lambda v: "must be between 3 and 15 letters long if your name is too long use a shortening" if not rangecheck(fname.value, 3, 15) else None)
+                fname=ui.input("forename", validation=lambda v: "must be between 3 and 15 letters long if your name is too long use a shortening" if not range_check(fname.value, 3, 15) else None).classes("w-50 h-15").style("background-color: #a2a2a2; text-color: black;").props("outlined")
                 ui.space().classes("w-9")   
-                sname=ui.input("surname",  validation=lambda v: "must be between 3 and 15 letters long if your name is too long use a shortening" if not rangecheck(sname.value, 3, 15) else None) 
+                sname=ui.input("surname",  validation=lambda v: "must be between 3 and 15 letters long if your name is too long use a shortening" if not range_check(sname.value, 3, 15) else None).classes("w-50 h-15").style("background-color: #a2a2a2; text-color: black;").props("outlined")
                 ui.space().classes("w-9")   
-                pnum=ui.input("phone number", validation=lambda v: "must be 11 digits long and only contain numbers" if not (len(pnum.value) == 11 and pnum.value.isdigit()) else None) 
+                pnum=ui.input("phone number", validation=lambda v: "must be 11 digits long and only contain numbers" if not (len(pnum.value) == 11 and pnum.value.isdigit()) else None).classes("w-50 h-15").style("background-color: #a2a2a2; text-color: black;").props("outlined")
                 ui.space().classes("w-9")
-                email=ui.input("email address", validation=lambda v: "must contain an @ and a . " if not ("@" in email.value and "." in email.value) else None)
+                email=ui.input("email address", validation=lambda v: "must contain an @ and a . " if not ("@" in email.value and "." in email.value) else None).classes("w-50 h-15").style("background-color: #a2a2a2; text-color: black;").props("outlined")
                 ui.space().classes("w-9")
         ui.space()
         with ui.card().classes("card width:50% whiteglow"):
@@ -292,15 +304,39 @@ def booking():
         with ui.card().classes("card width:50% whiteglow"):
             ui.label ("booking info")
             with ui.column():
-                date=ui.date_input(value=f"{currentdate}", on_change=lambda e: result.set_text(e.value))
-        result = ui.label()
+                date=ui.date_input(value=f"{currentdate}")
         with ui.card().classes("card whiteglow width:50%"):
             ui.label("staff ID")
             staffuname=ui.input("enter user name", )
-            
+        def functiontomakecustomerid(custid,fname, sname, petname):
+            firstnamelist = column_as_list("bookings", "fname")
+            lastnamelist = column_as_list("bookings", "sname")  
+            petnamelist = column_as_list("bookings", "petname")
+            custidlist= column_as_list("bookings", "customerid")
+            for i in range(len(firstnamelist)):#could have put any of the list variables as they are all the same length
+                if fname == firstnamelist[i] and sname == lastnamelist[i] and petname == petnamelist[i]:
+                    custid = custidlist[i]
+                    break
+                else:
+                    i+=1
+            if custid == "" or custid is None:
+                custid = f"{random.randint(100000000000, 999999999999)}"
+            return custid
+        name=app.storage.user.get("username", "unknown user")
+        def clear_booking_fields():
+            global species
+            custid.set_value("")
+            species=""
+            fname.set_value("")
+            sname.set_value("")
+            pnum.set_value("")
+            email.set_value("")
+            petname.set_value("")
+            petinfo.set_value("")
+            staffuname.set_value("")
         with ui.card().classes("card width:50%").classes("whiteglow"):
-            ui.button("submit",color="black",on_click=lambda: formsubmit(custid.value,species,fname.value,sname.value,pnum.value,email.value,petname.value,petinfo.value,staffuname.value,date.value)).classes("btn").props("rounded")
-            ui.button("clear",color="red",on_click=clearfields()).classes("btn")
+            ui.button("submit",color="black",on_click=lambda: formsubmit(custid.value,species,fname.value,sname.value,pnum.value,email.value,petname.value,petinfo.value,name,date.value,)).classes("btn").props("rounded")
+            ui.button("clear",color="red",on_click=clear_booking_fields).classes("btn")
 
         
             
@@ -309,14 +345,12 @@ def booking():
 @ui.page("/main_menu")
 def main():
     
-    
     top(islogin=False)   
     
     with ui.column().classes("w-full h-screen items-center justify-center"):
 
         with ui.card().classes("w-96 whiteglow rounded-lg items-center p-8") :
         
-
             ui.button("Make A Booking", color="black", on_click=moving_to_booking).classes("btn w-50  text-white rounded-lg")
         
             ui.space()
@@ -331,6 +365,9 @@ def main():
         
             ui.button("Reports", color="black", on_click=moving_to_report).classes("btn w-50 text-white rounded-lg")
             
+            ui.space()
+
+            ui.button("Settings", color="black", on_click=moving_to_settings).classes("btn w-50 text-white rounded-lg")
 
 #this is the main login, currently does"t do anything but output the username and password to the card
 @ui.page("/")
@@ -354,24 +391,33 @@ def login():
         username.value=""
         password.value=""
     def handle_submit():
-        usernameval = username.value
-        passwordval = password.value
-        
+        global usernameval
+
+        # simple validation
+        if not username.value or not password.value:
+            ui.notify('Please enter username and password', color='red')
+            return
+
         try:
             conn = sqlite3.connect("gmvets.db")
             cur = conn.cursor()
-            # Verify if the username and password match a record in the users table
-            cur.execute("SELECT * FROM users WHERE username = ? AND password = ?", (usernameval, passwordval))
-            user = cur.fetchone()
+            cur.execute("CREATE TABLE IF NOT EXISTS users (username TEXT PRIMARY KEY, password TEXT)")
+            # check credentials
+            cur.execute("SELECT 1 FROM users WHERE username = ? AND password = ?", (username.value, password.value))
+            row = cur.fetchone()
+            cur.close()
             conn.close()
-            
-            if user:
+
+            if row:
                 moving()
+                
+                app.storage.user['username'] = username.value
             else:
+                ui.notify('Invalid username or password — please try again', color='red')
                 clear_fields()
-                ui.notify("Invalid username or password. Please try again.", color="red")
         except sqlite3.Error as e:
-            ui.notify(f"Database error: {e}", color="red")
+            ui.notify(f'Database error: {e}', color='red')
+            clear_fields()
         
         
     
@@ -414,21 +460,21 @@ body {
 """, shared=True)
 #credit to https://stackoverflow.com however i have modified it to fit my needs and have lost the original question link although it only led to the theme change part i made the other parts through various code snippets
 ui.add_head_html("""
-<script>#theme definitions
+<script>// theme definitions
 const THEMES = {
-  default: { background: 'radial-gradient(circle, #0A0654 0%,#0C0765 20%, #000000 100%)', card:'#f3f4f6', text:'#000000' },
-  glowing: { background: 'radial-gradient(circle,#a9a9a9 25%, #0b0f1a 100%)', card:'#1f2937', text:'#e5e7eb' },
-  ocean:   { background: 'radial-gradient(circle,#2b7a78,#0b3d4a)', card:'#dff6f5', text:'#032b36' },
-  solar:   { background: 'radial-gradient(circle,#fdf6e3,#fceac9)', card:'#fffaf0', text:'#5b2a06' },
-  dark:    { background: 'radial-gradient(circle, #1a1a1a 0%, #000000 100%)', card:'#2d2d2d', text:'#f5f5f5' }
+  default: { background: 'radial-gradient(circle, #0A0654 0%,#0C0765 20%, #000000 100%)', card:'#f0f0f0', text:'#000000' },
+  glowing: { background: 'radial-gradient(circle,#333333 25%, #0b0f1a 100%)', card:'#f0f0f0', text:'#000000' },
+  ocean:   { background: 'radial-gradient(circle,#2b7a78,#0b3d4a)', card:'#f0f0f0', text:'#032b36' },
+  sepia:   { background: 'radial-gradient(circle,#fdf6e3,#fceac9)', card:'#808000', text:'#5b2a06' },
+  dark:    { background: 'radial-gradient(circle, #1a1a1a 0%, #000000 100%)', card:'#eeeeee', text:'#ffffff' }
 };
 function applyTheme(name){
   const t = THEMES[name] || THEMES.default;
   const r = document.documentElement.style;
-  r.setProperty('--background', t.background);#changes background
-  r.setProperty('--card', t.card); #changes card color
-  r.setProperty('--text', t.text); #changes text color
-  localStorage.setItem('gmvets_theme', name);#saves theme to browswer local storage
+    r.setProperty('--background', t.background); // changes background
+    r.setProperty('--card', t.card); // changes card color
+    r.setProperty('--text', t.text); // changes text color
+    localStorage.setItem('gmvets_theme', name); // saves theme to browser local storage
 }
 document.addEventListener('DOMContentLoaded', ()=> {
   const saved = localStorage.getItem('gmvets_theme') || 'default';
@@ -442,7 +488,8 @@ def settings():
     with ui.column().classes('w-full items-center'):
         with ui.card():
             ui.label('Theme')
-            theme = ui.select(['default', 'glowing', 'ocean', 'solar', 'dark'], value='default').classes('w-48')
+            theme = ui.select(['default', 'glowing', 'ocean', 'sepia', 'dark'], value='default').classes('w-48').props('outlined color=white options-dark')
+            ui.space().classes('h-4')
         ui.row()
         ui.button('Apply', on_click=lambda: ui.run_javascript(f"applyTheme('{theme.value}');")).classes('btn')
-ui.run()
+ui.run(storage_secret="mysecretkey")

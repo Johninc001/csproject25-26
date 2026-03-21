@@ -1,8 +1,11 @@
-from nicegui import ui
+from nicegui import ui, app
 import sqlite3
-from gmvets import iscreditcard, range_check, mmyy_format
+import bcrypt
+from validation import iscreditcard, range_check, mmyy_format, password_hash
+
 def moving(pages):
     ui.navigate.to(f"/{pages}")
+
 def has_space(name):
     return " " in name
 def is_email(email):
@@ -16,22 +19,28 @@ def is_phone(phone):
     else:
         return False
 def is_above_min_wage(wage):
+    
     try:
         wage_value = float(wage)
         if wage_value >= 12.76:
             return True
         else:
             return False
+    except TypeError:
+        for i in range(len(wage)):
+            if wage[i] == "£":
+                wage = wage[:i] + wage[i+1:]
+                break
     except ValueError:
         return False
 def top(page):
    if page=="edit":
         with ui.card().classes("w-full h-12 card fill-neutral-400") :
-            ui.button("+", on_click=lambda:moving(pages="edit"))
+            ui.button("+", on_click=lambda:moving(pages=""))
             ui.label ("greenmountvets")
    elif page=="addusers": 
        with ui.card().classes("w-full h-12 card fill-neutral-400") :
-            ui.button("edit", on_click=lambda:moving(pages=""))
+            ui.button("edit", on_click=lambda:moving(pages="edit"))
             ui.label ("greenmountvets")
 @ui.page("/edit")
 def editinvoice():
@@ -43,12 +52,13 @@ def editinvoice():
         ui.separator().classes("w-96")
         ui.space().classes("h-4")
 
+        #clears all fields and resets the page to the default state
         loadedinvoiceid = ""
         purchaselist = []
         purchaseoptions=["medicine","Carprofen - £25.50", "Meloxicam - £18.75", "Furosemide - £12.40", "Amoxicillin - £15.90", "Metronidazole - £14.20", "Prednisolone - £9.80", "Gabapentin - £22.60", "Enrofloxacin - £19.50", "Clindamycin - £16.30", "Pimobendan - £34.00"]
 
        
-#takes invoice id as in put and displays it for editing
+#takes invoice id as input and displays it for editing
         with ui.card().classes("card width:50% whiteglow"):
             with ui.row():
                 invoiceid=ui.input("invoice ID").classes("w-50")
@@ -83,6 +93,7 @@ def editinvoice():
             ui.label("select a purchase and click \"Add to list\"")
             purchases = ui.select(purchaseoptions, with_input=True,value="medicine").classes("w-50 whiteglow").props("outlined color=black")
 
+            #refreshes the purchase label to show the current purchases in the purchaselist variable if there are no purchases shows "current purchases: none"
             def refresh_purchase_label():
                 if len(purchaselist) == 0:
                     purchaseslabel.set_text("current purchases: none")
@@ -117,6 +128,7 @@ def editinvoice():
                 refresh_purchase_label()
                 ui.notify("fields cleared")
 
+            #takes the invoice id input and retrieves the corresponding invoice data from the db then fills the fields with that data for editing
             def load_invoice(loadedid):
                 nonlocal loadedinvoiceid
                 if loadedid is None or loadedid == "":
@@ -158,6 +170,7 @@ def editinvoice():
                 refresh_purchase_label()
                 ui.notify("invoice loaded", color="green")
 
+            #updates invoices
             def update_invoice():
                 if loadedinvoiceid == "":
                     ui.notify("load an invoice first", color="red")
@@ -201,7 +214,7 @@ def add_user():
             ui.label("Add User Page")
         with ui.card().classes("w-50 items-center justify-center"):
             ui.label("fullname:")
-            fullname=ui.input("fullname", validation=lambda v: "must contain a space between first and last name" if not has_space(v) else None,)
+            fullname=ui.input("fullname", validation=lambda v: "must contain a space between first and last name" if not has_space(v) and range_check(v, 3, 30) else None,)
             ui.label("username:")
             username=ui.input("username", validation=lambda v: "must be at least 5 characters long" if len(v) < 5 else None,)
             ui.label("password:")
@@ -218,14 +231,19 @@ def add_user():
             paid=ui.checkbox("Paid?")
 
             def handle_user_submit():
-                if not (fullname.value and username.value and password.value and email.value and phone.value and wage.value):
-                    ui.notify("Please fill in all fields.", color="red")
-                    return
                 conn = sqlite3.connect("gmvets.db")
                 c = conn.cursor()
+                passwordhash = password_hash(password.value)
+                #creates user and user profile tables if not exist
                 c.execute("CREATE TABLE IF NOT EXISTS users (username TEXT PRIMARY KEY, password TEXT)")
                 c.execute("CREATE TABLE IF NOT EXISTS user_profiles (id INTEGER PRIMARY KEY AUTOINCREMENT, fullname TEXT, username TEXT, email TEXT, phone TEXT, gender TEXT, wage TEXT, paid TEXT)")
-
+                #presence check for all fields to prevent empty fields being added to the db 
+                if not (fullname.value and username.value and passwordhash and email.value and phone.value and wage.value):
+                    ui.notify("Please fill in all fields.", color="red")
+                    return
+                
+                
+                #uniqueness check for username to prevent duplication
                 c.execute("SELECT username FROM users")
                 usernames = c.fetchall()
                 onefound = 0
@@ -239,10 +257,89 @@ def add_user():
                     ui.notify("That username already exists.", color="red")
                     return
 
-                c.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username.value, password.value))
+                #inserts user data into the db then clears fields
+                c.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username.value, passwordhash))
                 c.execute("INSERT INTO user_profiles (fullname, username, email, phone, gender, wage, paid) VALUES (?, ?, ?, ?, ?, ?, ?)", (fullname.value, username.value, email.value, phone.value, gender.value, wage.value, str(paid.value)))
                 conn.commit()
                 conn.close()
                 ui.notify("User added successfully!", color="green")
             ui.button("Add User", on_click=handle_user_submit).classes("btn w-30")
-ui.run(title="Add User Page")
+            ui.add_css("""
+#defaults
+
+:root{
+  --background: radial-gradient(circle, #0A0654 0%,#0C0765 20%, #000000 100%);
+  --card: #f3f4f6;
+  --text: #000000;
+}
+body { 
+    background: var(--background) !important; 
+    background-attachment: fixed;
+    color: var(--text); 
+}
+.card, .q-card { 
+    background-color: var(--card) !important; 
+    color: var(--text) !important; 
+}
+""", shared=True)
+#credit to https://stackoverflow.com however i have modified it to fit my needs and have lost the original question link although it only led to the theme change part i made the other parts through various code snippets
+@ui.page('/settings')
+def settings():
+    top(page="settings")
+    def theme_change(e):
+        
+        if e.value == "default":
+            ui.add_css(""":root{
+            --background: radial-gradient(circle, #0A0654 0%,#0C0765 20%, #000000 100%);
+            --card: #f3f4f6;
+            --text: #000000;
+            
+            }""", shared=True)
+        elif e.value == "glowing":
+            ui.add_css(""":root{
+           --background: radial-gradient(circle,#333333 25%, #0b0f1a 100%);
+        --card: #f0f0f0;
+        --text: #000000;
+        
+        }""", shared=True)
+        elif e.value == "ocean":
+            ui.add_css(""":root{
+            --background: radial-gradient(circle,#2b7a78,#0b3d4a);
+            --card: #f0f0f0;
+            --text: #032b36;
+            .dropdown-content{background-color: #1f1f1f !important;
+            color: #000000 !important;
+            background-color: #000000 !important;}
+            
+        }""", shared=True)
+        elif e.value=="dark":
+            ui.add_css(""":root{
+            --background: radial-gradient(circle, #000000 0%,#000000 20%, #000000 100%);
+            --card: #1f1f1f;
+            --text: #000000;
+            .dropdown-content{background-color: #1f1f1f !important;
+            color: #000000 !important;}
+            background-color: #000000 !important;
+        }""", shared=True)
+    def text_size_change(e):
+        
+        if e.value == "small":
+            ui.add_css(""":root{
+            --text: #000000;
+            font-size: 14px;
+        }""", shared=True)
+        elif e.value == "medium":
+            ui.add_css(""":root{
+            --text: #000000;
+            font-size: 16px;
+        }""", shared=True)
+        elif e.value == "large":
+            ui.add_css(""":root{
+            --text: #000000;
+            font-size: 18px;
+        }""", shared=True)    
+    with ui.card().classes("w-128 whiteglow items-center justify-center"):
+        with ui.row():
+            ui.select(["default", "glowing", "ocean","dark"], label="theme", on_change=lambda e: theme_change(e)).classes("w-50  whiteglow").props("outlined bg-color:dark ")
+            ui.select(["small", "medium", "large"], label="Text Size", on_change=lambda e: text_size_change(e)).classes("w-50 whiteglow").props("outlined bg-color:dark ")
+ui.run("greenmount vets-add", storage_secret="mysecretkey")

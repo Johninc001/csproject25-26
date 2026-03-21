@@ -1,11 +1,25 @@
 import luhncheck as l
+import bcrypt
+import base64
+def password_hash(password):
+    salt = bcrypt.gensalt()
+    hashed = bcrypt.hashpw(password.encode('utf-8'), salt)
+    return base64.b64encode(hashed).decode('utf-8')
+def verify_password(password, hashed):
+    hashed_bytes = base64.b64decode(hashed)
+    return bcrypt.checkpw(password.encode('utf-8'), hashed_bytes)
 def iscreditcard(cardnum):
-    cardnum=cardnum.replace(" ", "")
-    cardnum=cardnum.replace("-", "")
-    cardnum=int(cardnum)
-    if l(cardnum, 16):
-        return True
-    else:
+    if cardnum is None:
+        return False
+
+    cardnum = str(cardnum).replace(" ", "").replace("-", "")
+    if not cardnum.isdigit() :
+        return False
+
+    try:
+        return l.is_luhn(cardnum, 16)
+    except TypeError:
+        # If the input is not a valid number, return False
         return False
 def isemail(email):
     if"@"in email:
@@ -23,8 +37,8 @@ def mmyy_format(datestr):#for expiry date validation. checks if the input is in 
     
     try:
         mm,yy = datestr.split("/")
-        validmonths=["1","2","3","4","5","6","7","8","9","10","11","12","01","02","03","04","05","06","07","08","09"]
-        validyears=["26","27","28","29","30","31","32","33","34","35","36","37","38","39","40","41","42","43","44","45","46","47","48","49","50","51","52","53","54","55","56","57","58","59","60","61","62","63","64","65","66","67","68","69","70","71","72","73","74","75","76","77","78","79","80","81","82","83","84","85","86","87","88","89","90","91","92","93","94","95","96","97","98","99"]# ai use declaration. prompt:list every number from 00-99 in a comma separated list with speech marks around each number
+        validmonths=[str(i) for i in range(1, 13)]#list comprehension that makes list of validmonths
+        validyears=[str(i) for i in range(26, 100)]#list comprehension that makes list of validyears(assuming cards won't have expired)
         if mm not in validmonths:
             return False
         elif yy not in validyears:
@@ -34,4 +48,4 @@ def mmyy_format(datestr):#for expiry date validation. checks if the input is in 
 
     except ValueError:
         return False
-    
+

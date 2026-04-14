@@ -43,9 +43,16 @@ then run
 ```cd /directory/project/was/downloaded/in/here```
 and then
 ```pip install -r requirements.txt```
-**user info**
+
+
+**user info(gmvets.py**
+
+
 username=username
 password=password
-or use adduser.py to define your own
+** or** 
+use adduser.py to define your own
+
+
 **note**
 code sometimes randomly turns off just run it again it works perfectly otherwise

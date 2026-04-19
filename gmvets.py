@@ -1,3 +1,5 @@
+from turtle import title
+
 from nicegui import ui, app
 
 
@@ -35,31 +37,42 @@ class User:
             else:
                 pass
     def display_profile(self):
-        with ui.card().classes("w-50 whiteglow items-center justify-center"):
-            ui.label(f"""username: {self.username}
+        with ui.column().classes("w-full items-center justify-center"):
+            with ui.card().classes("w-50 whiteglow items-center justify-center"):
+                 ui.label(f"username: {self.username}\n\n").classes("text-3xl")
                  
-                 email: {self.email}
+                 ui.separator().classes("w-48")
+
                  
-                 phone number: {self.pnum}
+                 ui.label(f"email: {self.email}")
                  
-                 gender: {self.gender}
+                 ui.separator().classes("w-48")
                  
-                 wage: {self.wage}
+                 ui.label(f"phone number: {self.pnum}")
                  
-                 paid: {self.paid}""")        
+                 ui.separator().classes("w-48")
+                 
+                 ui.label(f"gender: {self.gender}")
+                 
+                 ui.separator().classes("w-48")
+                 
+                 ui.label(f"wage: {self.wage}")
+                 
+                 ui.separator().classes("w-48")
+                 
+                 ui.label(f"paid: {self.paid}")        
 
 
 
 #non-page functions
 def argsfunction(*args):#demonstrating that i can use args and kwargs, this function just adds up all the arguments given to it and returns the total, if any argument isn't an integer it returns an error message
-    total=0
+    total = 0
     for arg in args:
         try:
-            total+=int(arg)
-            return total
+            total += int(arg)
         except ValueError:
             return "Error: One or more arguments are not integers"
-total=argsfunction(1,2,3,6,9)
+    return total
 def add_numbers(a: int, b: int) -> int:#just proof i can use type hints
     return a + b
 
@@ -143,7 +156,7 @@ def top(islogin):
 
             with ui.button(on_click=lambda:moving(page="main_menu")).classes(" card  w-full items-center justify-center whiteglow",):
                 ui.image("https://i.ibb.co/cSPStcvF/gmvets-final-removebg-preview.jpg").classes("w-19 h-15 absolute left-4 top-1/2 -translate-y-1/2 vertical-align:middle")
-            with ui.row().classes("w-full justify-center items-center"):
+                with ui.row().classes("w-full justify-center items-center"):
                     ui.label("Greenmount Vets").classes("text-black text-5xl font-bold")
 
             with ui.column().classes("w-full h-10 items-center justify-center"):
@@ -277,7 +290,7 @@ def staff_bookings_and_sales():
                 if staffbookings[j] == "":
                     continue
 
-                onefound = 0
+                onefound = False
 
 
                 for k in range(len(shownstaff)): # check if this staff member has already been counted
@@ -285,11 +298,11 @@ def staff_bookings_and_sales():
 
                     if staffbookings[j] == shownstaff[k]:
 
-                        onefound = 1
+                        onefound = True
 
                         break
 
-                if onefound == 0:
+                if onefound == False:
                     staffbookingcount = 0
 
                     for i in range(len(staffbookings)): # count how many bookings belong to this staff member
@@ -316,15 +329,15 @@ def staff_bookings_and_sales():
 
                 if staffinvoices[j] == "":
                     continue
-                onefound = 0
+                onefound = False
 
                 for k in range(len(shownstaff)): # prevents double count 
 
                     if staffinvoices[j] == shownstaff[k]:
-                        onefound = 1
+                        onefound = True
                         break
 
-                if onefound == 0:
+                if onefound == False:
                     staffinvoicecount = 0
 
                     for i in range(len(staffinvoices)): # count  invoices belonging to employee
@@ -375,12 +388,11 @@ def reports():
 
             ui.space().classes("h-4")
 
-            ui.button("busiest dates", on_click=moving(page="busiest_dates")).classes("btn w-50 text-white rounded-lg")
+            ui.button("busiest dates", on_click=lambda:moving(page="reports/busiest_dates")).classes("btn w-50 text-white rounded-lg")
 
             ui.space().classes("h-4")
 
-            ui.button("staff member bookings", on_click=moving(page="staff_bookings_and_sales")).classes("btn w-50 text-white rounded-lg")
-
+            ui.button("staff member bookings", on_click=lambda:moving(page="reports/staff_bookings_and_sales")).classes("btn w-50 text-white rounded-lg")
             ui.space().classes("h-4")
 
     ui.space()
@@ -405,19 +417,19 @@ def calendar():
     with ui.column().classes("w-full align-items:center"):
         ui.date(value=f"{currentdate}", on_change=lambda e: handle_change(e)).classes("w-50 whiteglow")
         
-        result = ui.label()
+        with ui.card().classes("w-50 whiteglow items-center justify-center"):
         
-        resultscontainer = ui.column()
+            results = ui.label()
         
         def handle_change(input1):
         
             # clears previous search results when  new date is selected
-            resultscontainer.clear()
+            results.set_text("")
+            
         
             selecteddate = input1.value
         
-            result.set_text(selecteddate)
-            
+           
             # Get all booking data once
             try:
                 fnames = column_as_list('bookings', 'fname')
@@ -428,24 +440,24 @@ def calendar():
         
                 staffunames = column_as_list('bookings', 'staffuname')
             
-                onefound = 0
+                onefound = False
             except :
                     pass
             for i in range(len(datelist)): # compare a selected date with each booking's date
         
                 if selecteddate == datelist[i]:
         
-                    ui.label(f"booking: {fnames[i]} {snames[i]} for a {species_list[i]} booked by staff member {staffunames[i]}").classes("card w-50 whiteglow")
+                    results.set_text(f"booking: {fnames[i]} {snames[i]} for a {species_list[i]} booked by staff member {staffunames[i]}")
         
-                    onefound += 1
+                    onefound = True
         
                 elif datelist[i] == "":
         
                     break
             
-            if onefound == 0:
+            if onefound == False:
         
-                ui.label("no bookings for this date").classes("card w-50 whiteglow")    
+                results.set_text("no bookings for this date")    
         
         
 @ui.page("/invoices/create")
@@ -459,24 +471,15 @@ def create_invoice():
         
             with ui.row():
         
-                custid=ui.input("customer ID(blank=new)", validation=lambda v: None if v == "" or v is None else ("must be 12 numbers long and numeric" if not (v.isdigit() and len(v) == 12) else None)).classes("w-50")
-        
+                custid=ui.input("customer ID(blank=new)", validation=lambda v: "must be 12 numbers long" if v and not (len(v) == 12 and v.isdigit()) else None).classes("w-50 h-15").style("background-color: #a2a2a2; text-color: black;").props("outlined")
                 ui.space().classes("w-9")
-        
-                fname=ui.input("forename", validation=lambda v: "must be between 3 and 15 letters long if your name is too long use a shortening" if not range_check(v, 3, 15) else None)
-        
+                fname=ui.input("forename", validation=lambda v: "must be between 3 and 15 letters long if your name is too long use a shortening" if not range_check(fname.value, 3, 15) else None).classes("w-50 h-15").style("background-color: #a2a2a2; text-color: black;").props("outlined")
                 ui.space().classes("w-9")   
-        
-                sname=ui.input("surname",  validation=lambda v: "must be between 3 and 15 letters long if your name is too long use a shortening" if not range_check(v, 3, 15) else None) 
-        
+                sname=ui.input("surname",  validation=lambda v: "must be between 3 and 15 letters long if your name is too long use a shortening" if not range_check(sname.value, 3, 15) else None).classes("w-50 h-15").style("background-color: #a2a2a2; text-color: black;").props("outlined")
                 ui.space().classes("w-9")   
-        
-                pnum=ui.input("phone number", validation=lambda v: "must be 11 digits long and only contain numbers" if not (len(v) == 11 and v.isdigit()) else None) 
-        
+                pnum=ui.input("phone number", validation=lambda v: "must be 11 digits long and only contain numbers" if not (len(v) == 11 and v.isdigit()) else None).classes("w-50 h-15").style("background-color: #a2a2a2; text-color: black;").props("outlined")
                 ui.space().classes("w-9")
-        
-                email=ui.input("email address", validation=lambda v: "must contain an @ and a . " if not ("@" in v and "." in v) else None)
-        
+                email=ui.input("email address", validation=lambda v: "must contain an @ and a . " if not isemail(email.value) else None).classes("w-50 h-15").style("background-color: #a2a2a2; text-color: black;").props("outlined")
                 ui.space().classes("w-9")
         
             with ui.row():
@@ -542,7 +545,7 @@ def create_invoice():
         
                 #inserts invoice data(creating a new table if it isn't already present) into db  then clears fields 
                 con=sqlite3.connect("gmvets.db")
-        
+                custid = custid if custid else f"{random.randint(100000000000, 999999999999)}" # generates random customer id if left blank
                 c=con.cursor()
         
                 c.execute("CREATE TABLE IF NOT EXISTS invoices (id INTEGER PRIMARY KEY AUTOINCREMENT, custid TEXT, fname TEXT, sname TEXT, pnum TEXT, email TEXT, creditcard TEXT, expirydate TEXT, purchaselist TEXT, staffname TEXT)")
@@ -646,7 +649,6 @@ def invoice():
 
             ui.space()
 
-            ui.button("Edit Invoice", color="black", on_click=lambda:moving(page="invoices/edit")).classes("btn w-50 text-white rounded-lg")
 
 @ui.page("/booking")
 def booking():
@@ -709,13 +711,13 @@ def booking():
             ui.label(f"customer name")
 
             with ui.row():
-                custid=ui.input("customer ID(blank=new)", validation=lambda v: "must be 12 numbers long" if not (len(custid.value)) == 12 and custid.value.isdigit() or custid.value=="" or custid==None else None).classes("w-50 h-15").style("background-color: #a2a2a2; text-color: black;").props("outlined")
+                custid=ui.input("customer ID(blank=new)", validation=lambda v: "must be 12 numbers long" if v and not (len(v) == 12 and v.isdigit()) else None).classes("w-50 h-15").style("background-color: #a2a2a2; text-color: black;").props("outlined")
                 ui.space().classes("w-9")
                 fname=ui.input("forename", validation=lambda v: "must be between 3 and 15 letters long if your name is too long use a shortening" if not range_check(fname.value, 3, 15) else None).classes("w-50 h-15").style("background-color: #a2a2a2; text-color: black;").props("outlined")
                 ui.space().classes("w-9")   
                 sname=ui.input("surname",  validation=lambda v: "must be between 3 and 15 letters long if your name is too long use a shortening" if not range_check(sname.value, 3, 15) else None).classes("w-50 h-15").style("background-color: #a2a2a2; text-color: black;").props("outlined")
                 ui.space().classes("w-9")   
-                pnum=ui.input("phone number", validation=lambda v: "must be 11 digits long and only contain numbers" if not (len(pnum.value) == 11 and pnum.value.isdigit()) else None).classes("w-50 h-15").style("background-color: #a2a2a2; text-color: black;").props("outlined")
+                pnum=ui.input("phone number", validation=lambda v: "must be 11 digits long and only contain numbers" if not (len(v) == 11 and v.isdigit()) else None).classes("w-50 h-15").style("background-color: #a2a2a2; text-color: black;").props("outlined")
                 ui.space().classes("w-9")
                 email=ui.input("email address", validation=lambda v: "must contain an @ and a . " if not isemail(email.value) else None).classes("w-50 h-15").style("background-color: #a2a2a2; text-color: black;").props("outlined")
                 ui.space().classes("w-9")
@@ -737,7 +739,7 @@ def booking():
             ui.label ("booking info")
 
             with ui.column():
-                date=ui.date(value=f"{currentdate}", validation=lambda v: "date cannot be in the past" if v < currentdate or v > nextyear else None).classes("w-50").props("outlined")
+                date=ui.date(value=f"{currentdate}").classes("w-50").props("outlined")
 
         def functiontomakecustomerid(custid,fname, sname, petname):
 
@@ -928,7 +930,7 @@ body {
 """, shared=True)
 #credit to https://stackoverflow.com however i have modified it to fit my needs and have lost the original question link although it only led to the theme change part i made the other parts through various code snippets
 
-@ui.page('/settings')
+@ui.page("/settings")
 def settings():
     top(islogin=False)
     def theme_change(e):
@@ -987,5 +989,5 @@ def settings():
         with ui.row():
             ui.select(["default", "glowing", "ocean","dark"], label="theme", on_change=lambda e: theme_change(e)).classes("w-50  whiteglow").props("outlined bg-color:dark ")
             ui.select(["small", "medium", "large"], label="Text Size", on_change=lambda e: text_size_change(e)).classes("w-50 whiteglow").props("outlined bg-color:dark ")
-ui.run("greenmount vets", storage_secret="mysecretkey")
+ui.run(title="greenmount vets", storage_secret="mysecretkey")
 

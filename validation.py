@@ -6,8 +6,17 @@ def password_hash(password):
     hashed = bcrypt.hashpw(password.encode('utf-8'), salt)
     return base64.b64encode(hashed).decode('utf-8')
 def verify_password(password, hashed):
-    hashed_bytes = base64.b64decode(hashed)
-    return bcrypt.checkpw(password.encode('utf-8'), hashed_bytes)
+    try:
+        # Add padding if necessary
+        missing_padding = len(hashed) % 4
+        if missing_padding:
+            hashed += '=' * (4 - missing_padding)
+        
+        hashed_bytes = base64.b64decode(hashed)
+        return bcrypt.checkpw(password.encode('utf-8'), hashed_bytes)
+    except Exception:
+        
+        return False
 def iscreditcard(cardnum):
     if cardnum is None:
         return False

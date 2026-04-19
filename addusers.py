@@ -35,13 +35,23 @@ def is_above_min_wage(wage):
         return False
 def top(page):
    if page=="edit":
-        with ui.card().classes("w-full h-12 card fill-neutral-400") :
-            ui.button("+", on_click=lambda:moving(pages=""))
-            ui.label ("greenmountvets")
-   elif page=="addusers": 
-       with ui.card().classes("w-full h-12 card fill-neutral-400") :
-            ui.button("edit", on_click=lambda:moving(pages="edit"))
-            ui.label ("greenmountvets")
+        with ui.card().classes("items-center w-full h-12 card bg-blue-400 justify-center") :
+            with ui.row():
+                ui.button("+", on_click=lambda:moving(pages=""))
+                ui.label ("greenmount vets").classes("text-2xl")
+                ui.button("settings", on_click=lambda:moving(pages="settings"))
+   elif page=="": 
+       with ui.card().classes("items-center w-full h-12 card bg-blue-400 justify-center") :
+            with ui.row():
+                ui.button("edit", on_click=lambda:moving(pages="edit"))
+                ui.label ("greenmount vets").classes("text-2xl")
+                ui.button("settings", on_click=lambda:moving(pages="settings"))
+   elif page=="settings":
+        with ui.card().classes("items-center w-full h-12 card bg-blue-400 justify-center") :
+            with ui.row():
+                ui.button("edit", on_click=lambda:moving(pages="edit")).classes("btn w-30")
+                ui.label ("greenmount vets").classes("text-2xl")
+                ui.button("add users", on_click=lambda:moving(pages="")).classes("btn w-30")
 @ui.page("/edit")
 def editinvoice():
     top(page="edit")
@@ -238,7 +248,7 @@ def add_user():
                 c.execute("CREATE TABLE IF NOT EXISTS users (username TEXT PRIMARY KEY, password TEXT)")
                 c.execute("CREATE TABLE IF NOT EXISTS user_profiles (id INTEGER PRIMARY KEY AUTOINCREMENT, fullname TEXT, username TEXT, email TEXT, phone TEXT, gender TEXT, wage TEXT, paid TEXT)")
                 #presence check for all fields to prevent empty fields being added to the db 
-                if not (fullname.value and username.value and passwordhash and email.value and phone.value and wage.value):
+                if  not (fullname.value and username.value and passwordhash and email.value and phone.value and wage.value):
                     ui.notify("Please fill in all fields.", color="red")
                     return
                 
@@ -262,6 +272,14 @@ def add_user():
                 c.execute("INSERT INTO user_profiles (fullname, username, email, phone, gender, wage, paid) VALUES (?, ?, ?, ?, ?, ?, ?)", (fullname.value, username.value, email.value, phone.value, gender.value, wage.value, str(paid.value)))
                 conn.commit()
                 conn.close()
+                fullname.value = ""
+                username.value = ""
+                password.value = ""
+                email.value = ""
+                phone.value = ""
+                gender.value = "gender"
+                wage.value = ""
+                paid.value = False
                 ui.notify("User added successfully!", color="green")
             ui.button("Add User", on_click=handle_user_submit).classes("btn w-30")
             ui.add_css("""
@@ -283,7 +301,7 @@ body {
 }
 """, shared=True)
 #credit to https://stackoverflow.com however i have modified it to fit my needs and have lost the original question link although it only led to the theme change part i made the other parts through various code snippets
-@ui.page('/settings')
+@ui.page("/settings")
 def settings():
     top(page="settings")
     def theme_change(e):
@@ -342,4 +360,4 @@ def settings():
         with ui.row():
             ui.select(["default", "glowing", "ocean","dark"], label="theme", on_change=lambda e: theme_change(e)).classes("w-50  whiteglow").props("outlined bg-color:dark ")
             ui.select(["small", "medium", "large"], label="Text Size", on_change=lambda e: text_size_change(e)).classes("w-50 whiteglow").props("outlined bg-color:dark ")
-ui.run("greenmount vets-add", storage_secret="mysecretkey")
+ui.run("addusers", storage_secret="mysecretkey")

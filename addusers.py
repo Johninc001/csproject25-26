@@ -1,7 +1,11 @@
 from nicegui import ui, app
 import sqlite3
 import bcrypt
+import os
+from dotenv import load_dotenv
 from validation import iscreditcard, range_check, mmyy_format, password_hash
+
+load_dotenv()
 
 def moving(pages):
     ui.navigate.to(f"/{pages}")
@@ -360,4 +364,5 @@ def settings():
         with ui.row():
             ui.select(["default", "glowing", "ocean","dark"], label="theme", on_change=lambda e: theme_change(e)).classes("w-50  whiteglow").props("outlined bg-color:dark ")
             ui.select(["small", "medium", "large"], label="Text Size", on_change=lambda e: text_size_change(e)).classes("w-50 whiteglow").props("outlined bg-color:dark ")
-ui.run("addusers", storage_secret="mysecretkey")
+ui.run(title="add users", storage_secret=os.environ.get("SECRET_KEY"))
+

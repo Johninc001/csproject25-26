@@ -1,4 +1,4 @@
-from turtle import title
+
 
 from nicegui import ui, app
 
@@ -40,7 +40,7 @@ class User:
         with ui.column().classes("w-full items-center justify-center"):
             with ui.card().classes("w-50 whiteglow items-center justify-center"):
                  ui.label(f"username: {self.username}\n\n").classes("text-3xl")
-                 
+                
                  ui.separator().classes("w-48")
 
                  
@@ -56,7 +56,7 @@ class User:
                  
                  ui.separator().classes("w-48")
                  
-                 ui.label(f"wage: {self.wage}")
+                 ui.label(f"wage: £{self.wage}/hr")
                  
                  ui.separator().classes("w-48")
                  
@@ -65,6 +65,11 @@ class User:
 
 
 #non-page functions
+def isauth():
+    if app.storage.user.get("username") is not None:
+        return True
+    else:
+        ui.navigate.to("/")
 def argsfunction(*args):#demonstrating that i can use args and kwargs, this function just adds up all the arguments given to it and returns the total, if any argument isn't an integer it returns an error message
     total = 0
     for arg in args:
@@ -152,10 +157,12 @@ def top(islogin):
   background-color: #ffffff; /* the main color */
   width: fit-content;
 }""")
-        if islogin==False:#if user is logged in show this version of the top bar
+        app.add_media_files("/media", "media")
 
+        if islogin==False:#if user is logged in show this version of the top bar
+            isauth()
             with ui.button(on_click=lambda:moving(page="main_menu")).classes(" card  w-full items-center justify-center whiteglow",):
-                ui.image("https://i.ibb.co/cSPStcvF/gmvets-final-removebg-preview.jpg").classes("w-19 h-15 absolute left-4 top-1/2 -translate-y-1/2 vertical-align:middle")
+                ui.image("/media/gmvets.jpg").classes("w-19 h-15 absolute left-4 top-1/2 -translate-y-1/2 vertical-align:middle")
                 with ui.row().classes("w-full justify-center items-center"):
                     ui.label("Greenmount Vets").classes("text-black text-5xl font-bold")
 
@@ -165,7 +172,6 @@ def top(islogin):
                     ui.label("Healing Paws, Healing Hearts").classes("text-black")
 
         else: #if user is not logged in show this version of the top bar
-
              with ui.button().classes(" card  w-full items-center justify-center whiteglow").on_click(lambda:moving(page="main_menu")):
 
                 ui.image("https://i.ibb.co/cSPStcvF/gmvets-final-removebg-preview.jpg").classes("w-19 h-15 absolute left-4 top-1/2 -translate-y-1/2 vertical-align:middle")
@@ -811,11 +817,10 @@ def main():
 #this is the main login
 @ui.page("/")
 def login():
-    
+    app.add_static_files("/static", "static")
     ui.add_head_html("""
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;500;700&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-<link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.10/dist/full.min.css" rel="stylesheet" />
+
+<link href="/static/daisyui.min.css" rel="stylesheet" />
 """, shared=True)
 
 #                                   css
@@ -934,7 +939,13 @@ body {
 def settings():
     top(islogin=False)
     def theme_change(e):
-        
+        if e.value == "light":
+            ui.add_css(""":root{
+            --background: radial-gradient(circle, #ffffff 0%,#f0f0f0 20%, #87CEEB 100%);
+            --card: #f3f4f6;
+            --text: #000000;
+            
+            }""", shared=True)
         if e.value == "default":
             ui.add_css(""":root{
             --background: radial-gradient(circle, #0A0654 0%,#0C0765 20%, #000000 100%);
@@ -987,7 +998,7 @@ def settings():
         }""", shared=True)    
     with ui.card().classes("w-128 whiteglow items-center justify-center"):
         with ui.row():
-            ui.select(["default", "glowing", "ocean","dark"], label="theme", on_change=lambda e: theme_change(e)).classes("w-50  whiteglow").props("outlined bg-color:dark ")
+            ui.select(["default", "glowing", "ocean","dark", "light"], label="theme", on_change=lambda e: theme_change(e)).classes("w-50  whiteglow").props("outlined bg-color:dark ")
             ui.select(["small", "medium", "large"], label="Text Size", on_change=lambda e: text_size_change(e)).classes("w-50 whiteglow").props("outlined bg-color:dark ")
 ui.run(title="greenmount vets", storage_secret="mysecretkey")
 
